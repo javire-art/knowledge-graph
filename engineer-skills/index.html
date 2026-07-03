@@ -513,7 +513,8 @@ const SECTIONS = [
       { title:'测试技术', desc:'ICT（在线测试原理、测试点设计DFT）、FCT（功能测试）、AOI/AXI（X-Ray）、老化测试（Burn-in）、边界扫描（Boundary Scan）。' },
       { title:'静电防护ESD', desc:'ESD分区管理、腕带/离子风机、静电敏感器件（ESDS）管控标准（ANSI/ESD S20.20）。' },
       { title:'半导体封装基础', desc:'Wire Bonding、Reflow、Underfill、封装良率关联知识（模组/COB/SIP涉及）。' },
-      { title:'可靠性工程基础', desc:'MTBF/MTTF、加速寿命测试（HALT/HASS）、温循测试（TCT）、振动测试。' },
+      { title:'可靠性工程基础', desc:'MTBF/MTTF、加速寿命测试（HALT/HASS）、温循测试（TCT）、振动测试。FACA（Failure Analysis Corrective Action）失效分析与纠正措施的完整闭环流程。' },
+      { title:'生产合规与产线审核', desc:'POR（Plan of Record）基线管理——确保Layout、组装工艺、SOP、设备设置、5S与纪律始终符合已批准版本。产线审核（Line Audit）巡查规范与不符合项整改闭环。' },
     ]
   },
   {
@@ -527,9 +528,10 @@ const SECTIONS = [
       { title:'三大件（PFC/PFMEA/CP）', desc:'Process Flow Chart、PFMEA（含RPN评分、探测度改善）、Control Plan（联动更新，版本受控）。' },
       { title:'APQP衍生文件', desc:'DFMEA输入评审、样件控制计划、测量系统分析计划、过程能力研究计划。' },
       { title:'SOP/WI体系', desc:'图文化、防错点标注、版本管理、多语言（若跨厂区）。' },
-      { title:'NPI试产管理', desc:'EVT（功能可行性）→DVT（设计定型/可靠性）→PVT（量产工艺/良率/产能爬坡）→MP（稳定性监控）。每阶段Open Issue List/Exit Criteria是PjE必须掌控的工具。' },
+      { title:'NPI试产管理', desc:'EVT（功能可行性）→DVT（设计定型/可靠性）→PVT（量产工艺/良率/产能爬坡）→MP（稳定性监控）。试产活动组织（Trial Run）、问题汇总与Open Issue跟踪、Exit Criteria评审。每阶段Open Issue List/Exit Criteria是PjE必须掌控的工具。' },
       { title:'特殊特性（CTQ/CTP）管控', desc:'从图纸到CP到SOP的全链路落地，量检具、频次、反应计划（OCAP）。' },
-      { title:'工程变更管理（ECN/ECR）', desc:'变更申请、影响评估（BOM/工艺/治具/测试程序联动）、客户PPAP再提交判断。' },
+      { title:'工程变更管理（ECN/ECR）', desc:'变更申请、影响评估（BOM/工艺/治具/测试程序联动）、客户PPAP再提交判断。ECO/BCN工程变更指令在PDM/SAP系统中的维护与发放。' },
+      { title:'DFM（可制造性设计）', desc:'从产品设计阶段介入，汇总DFM问题项，主导DFM评审会议推动设计优化。减少NPI阶段的设计失效，降低试产周期和成本。' },
     ]
   },
   {
@@ -548,7 +550,8 @@ const SECTIONS = [
       { title:'OEE体系', desc:'可用率×性能率×良率，六大损失拆解（故障/换型/空转/速度/启动废品/生产废品）。' },
       { title:'精益生产（Lean）', desc:'5S、VSM价值流图、七大浪费识别、看板拉动、单件流、Kaizen提案、Andon系统。' },
       { title:'六西格玛基础', desc:'DMAIC流程、SPC控制图、过程能力指数（Cp/Cpk/Pp/Ppk）、假设检验、DOE实验设计（正交表/田口方法）。' },
-      { title:'自动化与产线数字化', desc:'自动化ROI测算、Cobot/机械臂评估、AGV/AMR、MES数据对接。' },
+      { title:'自动化与产线数字化', desc:'自动化ROI测算、Cobot/机械臂评估、AGV/AMR、MES数据对接。OLE（Overall Labor Efficiency）全员劳动效率的测算与改善。' },
+      { title:'产能规划与爬坡管理', desc:'Ramp Curve产能爬坡曲线建模与跟踪，订单-产能匹配分析，多产线/多工厂间的产能调配策略，产能瓶颈的提前识别与投资规划。' },
     ]
   },
   {
@@ -565,6 +568,7 @@ const SECTIONS = [
       { title:'量检具管理', desc:'GR&R测量系统分析、MSA、卡尺/千分尺/影像仪/三坐标（CMM）使用与校准周期。' },
       { title:'首件/巡检/末件（FAI/IPQC/LAI）', desc:'抽样标准（AQL）、检验频次设计、SPC联动预警。' },
       { title:'设备/产线CAPEX评估', desc:'产能测算、精度要求、投资回收期（ROI/Payback）、供应商设备验收（FAT/SAT）。' },
+      { title:'设备验证（IQ/OQ/PQ）', desc:'安装确认（IQ）→运行确认（OQ）→性能确认（PQ）的三阶段验证流程。医疗/汽车电子行业的设备验证标准要求，验证文档的编写与审批归档。' },
     ]
   },
   {
@@ -582,8 +586,9 @@ const SECTIONS = [
       { title:'客户项目管理', desc:'客户需求转化（VOC→技术规格）、样品送样管理、客户审核（Customer Audit）应对。' },
       { title:'供应商项目管理', desc:'新供应商导入、来料质量前期介入、外协产能协调。' },
       { title:'报价与成本核算', desc:'BOM成本拆解、工时成本、良率损耗成本、报价决策支持。' },
-      { title:'量产交付管理', desc:'产能爬坡计划（Ramp Curve）、订单-产能匹配、缺料/异常应急预案。' },
-      { title:'跨职能协调', desc:'研发/品质/采购/生产/设备/客服六方接口管理、项目周会主持与Action Item闭环、项目仪表盘搭建。' },
+      { title:'量产交付管理', desc:'产能爬坡计划（Ramp Curve）、订单-产能匹配、缺料/异常应急预案。量产转移（Ramp Readiness）检查清单与各职能节点确认。' },
+      { title:'项目投资与预算管理', desc:'CAPEX/OPEX投资规划与控制、设备/产线投资的ROI测算、投资回报期分析、项目预算跟踪与偏差管理。' },
+      { title:'跨职能协调', desc:'研发/品质/采购/生产/设备/客服六方接口管理、项目周会主持与Action Item闭环、项目仪表盘搭建。跨部门项目团队的组建与激励、矩阵式管理下的汇报与沟通机制。' },
     ]
   },
   {
@@ -595,8 +600,9 @@ const SECTIONS = [
     topics:[
       { title:'体系认证', desc:'IATF16949（汽车电子）、ISO9001、ISO14001、ISO45001、UL/CE/FCC等产品认证基础知识。' },
       { title:'五大核心工具（Core Tools）', desc:'APQP、PPAP、FMEA、SPC、MSA——PE/IE/PjE都要懂的通用语言。' },
-      { title:'异常处理（8D）', desc:'8D报告（D0-D8完整流程）、5Why、鱼骨图、根因分析（RCA）。' },
-      { title:'良率与品质指标', desc:'FTQ（首次合格率）、DPPM、逃逸率、客诉率、质量成本（COPQ）。' },
+      { title:'异常处理（8D）', desc:'8D报告（D0-D8完整流程）、5Why、鱼骨图、根因分析（RCA）。A3问题解决方法论——将问题定义、根因分析、对策实施、效果验证标准化在一页A3报告上。' },
+      { title:'良率与品质指标', desc:'FTQ（首次合格率）、DPPM、逃逸率、客诉率、质量成本（COPQ）。FPY（First Pass Yield）日报/周报的数据采集、计算规则、异常分析与持续改善。' },
+      { title:'FACA（失效分析与纠正措施）', desc:'从产线异常或客诉触发FACA流程——问题描述→临时对策→根因分析→纠正措施→预防措施→效果验证→标准化。与8D互补使用，FACA更侧重技术根因的工程分析。' },
       { title:'审核能力', desc:'过程审核（VDA6.3思路）、产品审核、内部审核员资质。' },
     ]
   },
@@ -610,7 +616,8 @@ const SECTIONS = [
       { title:'办公与建模工具', desc:'Excel高级函数/透视表/宏、Minitab/JMP（SPC/DOE/假设检验）、Visio/AutoCAD（Layout绘图）、SolidWorks/Pro-E（治具三维设计）。' },
       { title:'编程与自动化辅助', desc:'Python（Pandas做良率/OEE数据清洗分析）、SQL（从MES/ERP拉数据）、VBA自动化报表。' },
       { title:'信息化系统', desc:'MES（制造执行/工单/追溯/防错）、ERP（物料/成本/订单）、PLM（工程文件/BOM/ECN版本管理）、APS高级排程。' },
-      { title:'可视化与看板工具', desc:'Power BI/Tableau做KPI看板，取代人工汇总报表。' },
+      { title:'可视化与看板工具', desc:'Power BI/Tableau做KPI看板，取代人工汇总报表。FPY（首次良率）报表、OEE仪表盘、品质日报/周报的自动化呈现与海外客户汇报。' },
+      { title:'企业信息系统实操', desc:'SAP BOM维护与物料主数据管理、PDM（Product Data Management）产品数据管理、MES制造执行系统（工单/追溯/防错/FIS）、ERP物料/成本/订单管理。工厂信息流各系统的数据联动与接口逻辑。' },
     ]
   },
   {
@@ -620,8 +627,8 @@ const SECTIONS = [
     color:'#e879f9',
     desc:'BOM结构管理（EBOM→MBOM）、物料齐套检查、来料检验协同、成本意识（材料利用率/辅料成本/良率损耗）。',
     topics:[
-      { title:'BOM结构管理', desc:'工程BOM（EBOM）与制造BOM（MBOM）的转换与差异管理。' },
-      { title:'物料齐套（Material Readiness）', desc:'齐套率检查、缺料预警机制，决定试产/量产能否按时开线。' },
+      { title:'BOM结构管理', desc:'工程BOM（EBOM）与制造BOM（MBOM）的转换与差异管理。SAP系统中BOM的层次结构、组件分配、替代料设置与工程变更联动。' },
+      { title:'物料齐套（Material Readiness）', desc:'齐套率检查、缺料预警机制，决定试产/量产能否按时开线。物料追踪追溯系统的建立与MES数据对接。' },
       { title:'来料检验协同', desc:'与SQE/IQC协作制定关键物料检验标准，新料/替代料验证流程。' },
       { title:'成本意识', desc:'材料利用率、辅料/耗材成本、良率损耗折算成本、Cost Down量化方法。' },
     ]
@@ -670,10 +677,11 @@ const SECTIONS = [
 ];
 
 const SELF_CHECK = [
-  { dim:'PE出身', gap:'MOD法/线平衡/VSM/OEE六大损失拆解答不上来' },
-  { dim:'IE出身', gap:'PFMEA结构、CP文件逻辑、SMT制程参数讲不清' },
-  { dim:'技术出身（PE/IE都强）', gap:'项目风险管理、Stage-Gate评审、客户沟通/谈判经验缺失' },
-  { dim:'项目出身（PjE强）', gap:'制程/设备的技术判断力不足，容易被现场"忽悠"，只能传话不能拍板' },
+  { dim:'PE出身', gap:'MOD法/线平衡/VSM/OEE六大损失拆解答不上来，DFM/FACA流程经验不足' },
+  { dim:'IE出身', gap:'PFMEA结构、CP文件逻辑、SMT制程参数讲不清，IQ/OQ设备验证流程不熟' },
+  { dim:'技术出身（PE/IE都强）', gap:'项目风险管理、Stage-Gate评审、客户沟通/谈判经验缺失，CAPEX投资规划和跨职能协调能力不足' },
+  { dim:'项目出身（PjE强）', gap:'制程/设备的技术判断力不足，容易被现场"忽悠"；对MES/SAP/PDM等企业信息系统的实操深度不够，只能传话不能拍板' },
+  { dim:'有经验但缺体系', gap:'工作中做过但讲不出标准方法论（如会做PFMEA但不懂APQP全流程逻辑、会算OEE但说不清六大损失拆解结构），面试容易被扣分' },
 ];
 
 // ============================================================
