@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电子制造业 PE+IE+PjE 三合一知识技能体系</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #111827;
+  --bg-card: rgba(17,24,39,0.88);
+  --bg-glass: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.15);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --color-pe: #22d3ee;
+  --color-pe-light: rgba(34,211,238,0.12);
+  --color-ie: #34d399;
+  --color-ie-light: rgba(52,211,153,0.12);
+  --color-pje: #a78bfa;
+  --color-pje-light: rgba(167,139,250,0.12);
+  --color-all: #fbbf24;
+  --color-all-light: rgba(251,191,36,0.12);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(56,189,248,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* === Navigation === */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: linear-gradient(180deg, rgba(10,14,23,0.95) 60%, transparent);
+  padding: 14px 24px;
+  display: flex; align-items: center; gap: 24px;
+  flex-wrap: wrap;
+}
+nav .logo { font-size: 18px; font-weight: 700; white-space: nowrap; }
+nav .logo span { color: var(--text-muted); font-weight: 400; }
+nav .nav-links { display: flex; gap: 16px; margin-left: auto; }
+nav .nav-links a {
+  color: var(--text-muted); text-decoration: none;
+  font-size: 13px; transition: color 0.2s; white-space: nowrap;
+  padding: 4px 0; border-bottom: 2px solid transparent;
+}
+nav .nav-links a:hover { color: var(--text-primary); }
+
+/* === Hero === */
+.hero {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 120px 24px 60px;
+}
+.hero h1 {
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.hero h1 .pe { background: linear-gradient(135deg, #22d3ee, #0ea5e9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero h1 .ie { background: linear-gradient(135deg, #34d399, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero h1 .pje { background: linear-gradient(135deg, #a78bfa, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero .divider { width: 2px; height: 32px; background: var(--border); display: inline-block; margin: 0 8px; transform: rotate(15deg); }
+.hero .subtitle {
+  font-size: clamp(14px, 2vw, 18px);
+  color: var(--text-secondary);
+  max-width: 700px;
+  line-height: 1.8;
+  margin-bottom: 48px;
+}
+
+/* === Role Cards === */
+.role-cards {
+  display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+  max-width: 900px;
+}
+.role-card {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  width: 260px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.role-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
+}
+.role-card .rc-icon { font-size: 32px; margin-bottom: 12px; }
+.role-card .rc-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.role-card .rc-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.role-card .rc-tag {
+  display: inline-block; margin-top: 12px;
+  padding: 3px 10px; border-radius: 100px;
+  font-size: 11px; font-weight: 500;
+}
+.role-card.pe-card { border-color: rgba(34,211,238,0.2); }
+.role-card.pe-card:hover { border-color: rgba(34,211,238,0.5); box-shadow: 0 8px 30px rgba(34,211,238,0.08); }
+.role-card.pe-card .rc-tag { background: var(--color-pe-light); color: var(--color-pe); }
+
+.role-card.ie-card { border-color: rgba(52,211,153,0.2); }
+.role-card.ie-card:hover { border-color: rgba(52,211,153,0.5); box-shadow: 0 8px 30px rgba(52,211,153,0.08); }
+.role-card.ie-card .rc-tag { background: var(--color-ie-light); color: var(--color-ie); }
+
+.role-card.pje-card { border-color: rgba(167,139,250,0.2); }
+.role-card.pje-card:hover { border-color: rgba(167,139,250,0.5); box-shadow: 0 8px 30px rgba(167,139,250,0.08); }
+.role-card.pje-card .rc-tag { background: var(--color-pje-light); color: var(--color-pje); }
+
+.scroll-hint { margin-top: 48px; color: var(--text-muted); font-size: 13px; animation: bounce 2s infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+
+/* === Section === */
+.section {
+  position: relative; z-index: 1;
+  padding: 80px 24px;
+  max-width: 1200px; margin: 0 auto;
+}
+.section-header {
+  margin-bottom: 40px;
+}
+.section-header .sh-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.section-header h2 {
+  font-size: 28px; font-weight: 700;
+  margin-bottom: 10px;
+}
+.section-header p {
+  font-size: 14px; color: var(--text-secondary);
+  max-width: 600px;
+}
+.section-header .role-badges { display: flex; gap: 6px; margin-top: 10px; }
+.role-badge {
+  font-size: 11px; padding: 2px 10px; border-radius: 100px;
+  font-weight: 500;
+}
+.role-badge.pe { background: var(--color-pe-light); color: var(--color-pe); border: 1px solid rgba(34,211,238,0.2); }
+.role-badge.ie { background: var(--color-ie-light); color: var(--color-ie); border: 1px solid rgba(52,211,153,0.2); }
+.role-badge.pje { background: var(--color-pje-light); color: var(--color-pje); border: 1px solid rgba(167,139,250,0.2); }
+
+/* === Knowledge Tree Section === */
+#tree-section { padding-top: 100px; }
+#knowledge-tree {
+  width: 100%; height: 600px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+#knowledge-tree svg { width: 100%; height: 100%; }
+
+/* === Topic Cards Grid === */
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.topic-card {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.topic-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+.topic-card .tc-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-muted); margin-bottom: 6px;
+}
+.topic-card .tc-title {
+  font-size: 15px; font-weight: 600; margin-bottom: 8px;
+}
+.topic-card .tc-preview {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.topic-card .tc-dot {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; margin-top: 10px;
+}
+
+/* === Detail Modal === */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  max-width: 720px; width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 40px;
+  position: relative;
+}
+.modal-content .close-modal {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--bg-glass); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer;
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.modal-content .close-modal:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+.modal-content h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+.modal-content .modal-section { margin-bottom: 24px; }
+.modal-content .modal-section h3 { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.modal-content .modal-section ul { list-style: none; padding: 0; }
+.modal-content .modal-section ul li {
+  position: relative; padding: 8px 0 8px 20px;
+  font-size: 14px; line-height: 1.7;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.modal-content .modal-section ul li:last-child { border-bottom: none; }
+.modal-content .modal-section ul li::before {
+  content: '•'; position: absolute; left: 0;
+  color: var(--color-all);
+}
+.modal-content .modal-section ul li strong { color: var(--text-primary); }
+.modal-content .modal-role-tags { display: flex; gap: 6px; margin-bottom: 16px; }
+.modal-content .modal-role-tags span {
+  font-size: 11px; padding: 2px 10px; border-radius: 100px;
+  font-weight: 500;
+}
+
+.modal-content::-webkit-scrollbar { width: 4px; }
+.modal-content::-webkit-scrollbar-track { background: transparent; }
+.modal-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* === Matrix Table === */
+.matrix-wrapper { overflow-x: auto; }
+.matrix-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.matrix-table th {
+  background: var(--bg-glass);
+  padding: 14px 16px;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-primary);
+}
+.matrix-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.matrix-table tr:hover td { background: rgba(255,255,255,0.02); }
+.matrix-table .matrix-dim {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* === Pitfalls Section === */
+.pitfalls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.pitfall-card {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  border-left: 3px solid;
+}
+.pitfall-card .pf-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 8px;
+}
+.pitfall-card .pf-text {
+  font-size: 14px; line-height: 1.7;
+  color: var(--text-secondary);
+}
+.pitfall-card .pf-text strong { color: var(--text-primary); }
+
+/* === Self Check Matrix === */
+#selfcheck-section { padding-bottom: 100px; }
+
+/* === Scroll Arrow === */
+.section-divider {
+  text-align: center; padding: 20px 0 40px;
+  color: var(--text-muted); font-size: 12px;
+}
+
+/* === Footer === */
+footer {
+  position: relative; z-index: 1;
+  text-align: center;
+  padding: 40px 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  nav .nav-links { display: none; }
+  .role-card { width: 100%; max-width: 320px; }
+  .topic-grid { grid-template-columns: 1fr; }
+  .modal-content { padding: 24px; max-height: 90vh; }
+  .hero { padding: 100px 16px 40px; }
+  .section { padding: 48px 16px; }
+  #knowledge-tree { height: 400px; }
+  .matrix-table { font-size: 12px; }
+  .matrix-table th, .matrix-table td { padding: 10px 12px; }
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<!-- Navigation -->
+<nav>
+  <div class="logo">⚙️ <span>三合一技能体系</span></div>
+  <div class="nav-links">
+    <a href="#tree-section">知识树</a>
+    <a href="#details-section">详解</a>
+    <a href="#pitfalls-section">避坑</a>
+    <a href="#selfcheck-section">自检</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>
+    <span class="pe">PE</span><span class="divider"></span>
+    <span class="ie">IE</span><span class="divider"></span>
+    <span class="pje">PjE</span>
+  </h1>
+  <div class="subtitle">
+    工艺工程师 · 工业工程师 · 项目工程师<br>
+    电子制造业「三合一」知识技能体系
+  </div>
+  <div class="role-cards">
+    <div class="role-card pe-card" onclick="filterRole('pe')">
+      <div class="rc-icon">🔬</div>
+      <div class="rc-title" style="color:var(--color-pe)">工艺工程师 PE</div>
+      <div class="rc-desc">懂制程，解决「能不能做、做得好不好」——SMT/DIP/组装/测试全链路技术能力</div>
+      <span class="rc-tag">制程主导</span>
+    </div>
+    <div class="role-card ie-card" onclick="filterRole('ie')">
+      <div class="rc-icon">📊</div>
+      <div class="rc-title" style="color:var(--color-ie)">工业工程师 IE</div>
+      <div class="rc-desc">懂效率，解决「做得快不快、省不省」——工时/线平衡/OEE/精益生产的量化语言</div>
+      <span class="rc-tag">效率主导</span>
+    </div>
+    <div class="role-card pje-card" onclick="filterRole('pje')">
+      <div class="rc-icon">🚀</div>
+      <div class="rc-title" style="color:var(--color-pje)">项目工程师 PjE</div>
+      <div class="rc-desc">懂全局，解决「资源/时间/跨部门/客户能不能对上」——项目管理的全流程掌控</div>
+      <span class="rc-tag">全局主导</span>
+    </div>
+  </div>
+  <div class="scroll-hint">↓ 向下探索</div>
+</section>
+
+<!-- Knowledge Tree Section -->
+<section class="section" id="tree-section">
+  <div class="section-header">
+    <div class="sh-number">KNOWLEDGE MAP</div>
+    <h2>技能知识图谱</h2>
+    <p>各知识领域之间的关联关系，点击节点查看详情，使用角色按钮筛选聚焦</p>
+    <div class="role-badges" style="margin-top:12px">
+      <span class="role-badge pe" onclick="filterRole('pe')" style="cursor:pointer">PE</span>
+      <span class="role-badge ie" onclick="filterRole('ie')" style="cursor:pointer">IE</span>
+      <span class="role-badge pje" onclick="filterRole('pje')" style="cursor:pointer">PjE</span>
+      <span class="role-badge" style="background:var(--color-all-light);color:var(--color-all);border:1px solid rgba(251,191,36,0.2);cursor:pointer" onclick="filterRole('all')">全部</span>
+      <span style="font-size:11px;color:var(--text-muted);margin-left:8px" id="treeStatus"></span>
+    </div>
+  </div>
+  <div id="knowledge-tree"></div>
+</section>
+
+<!-- Details Section -->
+<section class="section" id="details-section">
+  <div class="section-header">
+    <div class="sh-number">KNOWLEDGE BASE</div>
+    <h2>详细知识库</h2>
+    <p>十二大知识领域，点击卡片展开完整内容</p>
+  </div>
+  <div class="topic-grid" id="topicGrid"></div>
+</section>
+
+<!-- Pitfalls Section -->
+<section class="section" id="pitfalls-section" style="max-width:900px">
+  <div class="section-header">
+    <div class="sh-number">WATCH OUT</div>
+    <h2>⚠️ 三合一最容易踩的坑</h2>
+    <p>PE的救火、IE的优化、PjE的deadline三者抢时间时的判断力</p>
+  </div>
+  <div class="pitfalls-grid" id="pitfallsGrid"></div>
+  <div style="margin-top:32px;background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:28px">
+    <h3 style="font-size:16px;font-weight:600;margin-bottom:16px">🔄 建议的角色切换机制</h3>
+    <ul style="list-style:none;padding:0">
+      <li style="padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary);line-height:1.7">
+        <strong style="color:var(--text-primary)">按项目阶段决定角色权重</strong> — NPI/试产期 <strong style="color:var(--color-pje)">PjE</strong> 最高（协调资源、卡节点）；量产爬坡期 <strong style="color:var(--color-pe)">PE</strong> 最高（救火、良率）；量产稳定期 <strong style="color:var(--color-ie)">IE</strong> 最高（做优化、Cost Down）
+      </li>
+      <li style="padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary);line-height:1.7">
+        <strong style="color:var(--text-primary)">固定"不可侵占"时段</strong> — 每周固定半天只做IE分析或项目复盘，不接受现场临时打断
+      </li>
+      <li style="padding:10px 0;font-size:14px;color:var(--text-secondary);line-height:1.7">
+        <strong style="color:var(--text-primary)">建立分层响应机制</strong> — PE亲自处理的异常 vs 技术员可自行处理的异常分级，减少PE被日常小事拖住
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- Self-Check Matrix -->
+<section class="section" id="selfcheck-section" style="max-width:900px">
+  <div class="section-header">
+    <div class="sh-number">SELF CHECK</div>
+    <h2>技能自检地图</h2>
+    <p>面试/JD自查用 — 典型漏项与偏科警示</p>
+  </div>
+  <div class="matrix-wrapper">
+    <table class="matrix-table">
+      <thead>
+        <tr><th>背景</th><th>典型漏项</th></tr>
+      </thead>
+      <tbody id="matrixBody"></tbody>
+    </table>
+  </div>
+  <div style="margin-top:32px;padding:24px;background:linear-gradient(135deg,var(--bg-glass),rgba(251,191,36,0.05));border:1px solid rgba(251,191,36,0.15);border-radius:var(--radius-md)">
+    <p style="font-size:14px;line-height:1.8;color:var(--text-secondary)">
+      <strong style="color:var(--color-all)">真正扎实的「三合一」人才</strong>，是 <strong style="color:var(--color-pe)">PE懂制程能拍板</strong>、<strong style="color:var(--color-ie)">IE懂数据能量化</strong>、<strong style="color:var(--color-pje)">PjE懂全局能协调</strong> 三者都不缺项，
+      而不是「技术强但不会管项目」或「会开会但技术判断靠猜」。
+    </p>
+  </div>
+</section>
+
+<footer>
+  电子制造业 PE+IE+PjE 三合一知识技能体系 · 知识图谱可视化
+</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-content">
+    <button class="close-modal" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA — 12 Sections with topics
+// ============================================================
+const SECTIONS = [
+  {
+    id:'sec1', num:'一', title:'电子制造工艺基础知识',
+    subtitle:'PE底色，电子制造行业专属',
+    roles:['pe'],
+    color:'#22d3ee',
+    desc:'电子制造业和"通用制造业PE"最大的分野，必须扎实。覆盖PCB基础、SMT全链路、DIP波峰焊、后段组装、三防密封、测试技术、ESD防护、半导体封装、可靠性工程。',
+    topics:[
+      { title:'PCB基础', desc:'叠层结构、阻焊、阻抗控制、板材（FR4/铝基板/高频板）、表面处理（HASL/沉金/OSP）。' },
+      { title:'SMT制程全链路', desc:'印刷（钢网开孔、锡膏选型、印刷参数）→贴片（Pick&Place精度、抛料率）→回流焊（炉温曲线Reflow Profile，预热区/回流区/冷却区设计）→AOI/SPI检测原理。' },
+      { title:'DIP/波峰焊', desc:'插件、选择焊、波峰焊参数（预热、焊接温度、传送速度）。' },
+      { title:'后段组装（Box Build）', desc:'结构件装配、螺丝扭力管控、点胶/灌胶、贴合（OCA/泡棉）、FPC/连接器压接。' },
+      { title:'三防/密封', desc:'三防漆喷涂、防水测试（IP等级）、气密性测试。' },
+      { title:'测试技术', desc:'ICT（在线测试原理、测试点设计DFT）、FCT（功能测试）、AOI/AXI（X-Ray）、老化测试（Burn-in）、边界扫描（Boundary Scan）。' },
+      { title:'静电防护ESD', desc:'ESD分区管理、腕带/离子风机、静电敏感器件（ESDS）管控标准（ANSI/ESD S20.20）。' },
+      { title:'半导体封装基础', desc:'Wire Bonding、Reflow、Underfill、封装良率关联知识（模组/COB/SIP涉及）。' },
+      { title:'可靠性工程基础', desc:'MTBF/MTTF、加速寿命测试（HALT/HASS）、温循测试（TCT）、振动测试。' },
+    ]
+  },
+  {
+    id:'sec2', num:'二', title:'工艺开发与文件体系',
+    subtitle:'APQP全流程，PE主导，PjE把节点串起来',
+    roles:['pe','pje'],
+    color:'#0ea5e9',
+    desc:'从策划立项到量产反馈的完整APQP五阶段流程，工艺文件三件套（PFC/PFMEA/CP），NPI试产管理，工程变更控制。',
+    topics:[
+      { title:'APQP五阶段', desc:'策划立项→产品设计验证→过程设计验证→产品/过程确认→反馈评估。五阶段本质上是PjE的项目里程碑，PE是执行人，PjE是节点看守人。' },
+      { title:'三大件（PFC/PFMEA/CP）', desc:'Process Flow Chart、PFMEA（含RPN评分、探测度改善）、Control Plan（联动更新，版本受控）。' },
+      { title:'APQP衍生文件', desc:'DFMEA输入评审、样件控制计划、测量系统分析计划、过程能力研究计划。' },
+      { title:'SOP/WI体系', desc:'图文化、防错点标注、版本管理、多语言（若跨厂区）。' },
+      { title:'NPI试产管理', desc:'EVT（功能可行性）→DVT（设计定型/可靠性）→PVT（量产工艺/良率/产能爬坡）→MP（稳定性监控）。每阶段Open Issue List/Exit Criteria是PjE必须掌控的工具。' },
+      { title:'特殊特性（CTQ/CTP）管控', desc:'从图纸到CP到SOP的全链路落地，量检具、频次、反应计划（OCAP）。' },
+      { title:'工程变更管理（ECN/ECR）', desc:'变更申请、影响评估（BOM/工艺/治具/测试程序联动）、客户PPAP再提交判断。' },
+    ]
+  },
+  {
+    id:'sec3', num:'三', title:'工业工程（IE）技术体系',
+    subtitle:'IE底色，产能与成本的量化语言',
+    roles:['ie'],
+    color:'#34d399',
+    desc:'产能节拍计算、标准工时体系、线平衡、Layout、人机配比、SMED、OEE、精益生产、六西格玛、自动化与产线数字化。',
+    topics:[
+      { title:'产能与节拍', desc:'Takt Time计算、UPH/UPD测算、产能爬坡曲线建模。' },
+      { title:'标准工时体系', desc:'秒表测时法、MOD法/MTM法、PTS预定时间标准、宽放率设定、工时库建立与定期复测。' },
+      { title:'线平衡（Line Balancing）', desc:'工位ST拆分、瓶颈识别、平衡率计算与优化（目标85%+）。' },
+      { title:'产线布局（Layout）', desc:'U型线/直线/环形线选型、物流动线、WIP缓冲区、线边仓、人机分离布局。' },
+      { title:'人机配比与动作分析', desc:'ECRS原则（取消/合并/重排/简化）、双手作业分析、动素分析（Therblig）。' },
+      { title:'SMED快速换型', desc:'内部作业外部化、定位基准统一、治具快换设计。' },
+      { title:'OEE体系', desc:'可用率×性能率×良率，六大损失拆解（故障/换型/空转/速度/启动废品/生产废品）。' },
+      { title:'精益生产（Lean）', desc:'5S、VSM价值流图、七大浪费识别、看板拉动、单件流、Kaizen提案、Andon系统。' },
+      { title:'六西格玛基础', desc:'DMAIC流程、SPC控制图、过程能力指数（Cp/Cpk/Pp/Ppk）、假设检验、DOE实验设计（正交表/田口方法）。' },
+      { title:'自动化与产线数字化', desc:'自动化ROI测算、Cobot/机械臂评估、AGV/AMR、MES数据对接。' },
+    ]
+  },
+  {
+    id:'sec4', num:'四', title:'工装治具与设备管理',
+    subtitle:'PE主责，IE关注换型效率',
+    roles:['pe','ie'],
+    color:'#f59e0b',
+    desc:'治具设计七原则、治具分类管理、TPM设备管理、制程参数窗口开发、量检具管理、首件巡检末件机制、CAPEX评估。',
+    topics:[
+      { title:'治具设计七原则', desc:'六点定位原理、夹紧力计算、防错设计（Poka-Yoke）、快换结构。' },
+      { title:'治具/夹具/工装分类管理', desc:'定位治具、检测治具、装配治具、老化治具、寿命台账与校验周期。' },
+      { title:'设备管理（TPM）', desc:'全员生产维护（自主/专业/预防保养）、设备稼动率统计、备件管理。' },
+      { title:'制程参数窗口开发（DOE）', desc:'注塑温度/压力/保压参数窗口、SMT炉温曲线优化、点胶量/压力窗口、螺丝扭力窗口。' },
+      { title:'量检具管理', desc:'GR&R测量系统分析、MSA、卡尺/千分尺/影像仪/三坐标（CMM）使用与校准周期。' },
+      { title:'首件/巡检/末件（FAI/IPQC/LAI）', desc:'抽样标准（AQL）、检验频次设计、SPC联动预警。' },
+      { title:'设备/产线CAPEX评估', desc:'产能测算、精度要求、投资回收期（ROI/Payback）、供应商设备验收（FAT/SAT）。' },
+    ]
+  },
+  {
+    id:'sec5', num:'五', title:'项目管理知识体系',
+    subtitle:'PjE核心，新增的一整块',
+    roles:['pje'],
+    color:'#a78bfa',
+    desc:'PMBOK框架、甘特图/关键路径、里程碑Gate管理、风险管理、变更控制、资源调度，以及客户与供应链界面管理、跨职能协调。',
+    topics:[
+      { title:'项目管理硬技能', desc:'PMBOK五大过程组（启动/规划/执行/监控/收尾）× 七大管理领域（范围/时间/成本/质量/风险/沟通/干系人）。甘特图/CPM关键路径/CCPM缓冲区管理。' },
+      { title:'里程碑与Gate管理', desc:'结合APQP五阶段设计Stage-Gate评审，每个Gate明确Exit Criteria和决策人。' },
+      { title:'风险管理', desc:'风险登记表（Risk Register）、风险矩阵（概率×影响）、应对策略（规避/转移/缓解/接受）。' },
+      { title:'变更控制', desc:'范围蔓延（Scope Creep）识别与控制、变更申请流程（结合ECN）。' },
+      { title:'资源调度', desc:'跨部门资源冲突协调、多项目并行的优先级排序。' },
+      { title:'客户项目管理', desc:'客户需求转化（VOC→技术规格）、样品送样管理、客户审核（Customer Audit）应对。' },
+      { title:'供应商项目管理', desc:'新供应商导入、来料质量前期介入、外协产能协调。' },
+      { title:'报价与成本核算', desc:'BOM成本拆解、工时成本、良率损耗成本、报价决策支持。' },
+      { title:'量产交付管理', desc:'产能爬坡计划（Ramp Curve）、订单-产能匹配、缺料/异常应急预案。' },
+      { title:'跨职能协调', desc:'研发/品质/采购/生产/设备/客服六方接口管理、项目周会主持与Action Item闭环、项目仪表盘搭建。' },
+    ]
+  },
+  {
+    id:'sec6', num:'六', title:'质量体系与工具',
+    subtitle:'三个角色的共同语言',
+    roles:['pe','ie','pje'],
+    color:'#f472b6',
+    desc:'IATF16949/ISO体系认证、五大核心工具（APQP/PPAP/FMEA/SPC/MSA）、8D异常处理、良率品质指标、审核能力。',
+    topics:[
+      { title:'体系认证', desc:'IATF16949（汽车电子）、ISO9001、ISO14001、ISO45001、UL/CE/FCC等产品认证基础知识。' },
+      { title:'五大核心工具（Core Tools）', desc:'APQP、PPAP、FMEA、SPC、MSA——PE/IE/PjE都要懂的通用语言。' },
+      { title:'异常处理（8D）', desc:'8D报告（D0-D8完整流程）、5Why、鱼骨图、根因分析（RCA）。' },
+      { title:'良率与品质指标', desc:'FTQ（首次合格率）、DPPM、逃逸率、客诉率、质量成本（COPQ）。' },
+      { title:'审核能力', desc:'过程审核（VDA6.3思路）、产品审核、内部审核员资质。' },
+    ]
+  },
+  {
+    id:'sec7', num:'七', title:'数据分析与信息化工具',
+    subtitle:'三角色共用的技术杠杆',
+    roles:['pe','ie','pje'],
+    color:'#fb923c',
+    desc:'Excel高级分析、Minitab/JMP统计工具、Visio/AutoCAD制图、Python/SQL编程辅助、MES/ERP/PLM/APS系统、Power BI可视化看板。',
+    topics:[
+      { title:'办公与建模工具', desc:'Excel高级函数/透视表/宏、Minitab/JMP（SPC/DOE/假设检验）、Visio/AutoCAD（Layout绘图）、SolidWorks/Pro-E（治具三维设计）。' },
+      { title:'编程与自动化辅助', desc:'Python（Pandas做良率/OEE数据清洗分析）、SQL（从MES/ERP拉数据）、VBA自动化报表。' },
+      { title:'信息化系统', desc:'MES（制造执行/工单/追溯/防错）、ERP（物料/成本/订单）、PLM（工程文件/BOM/ECN版本管理）、APS高级排程。' },
+      { title:'可视化与看板工具', desc:'Power BI/Tableau做KPI看板，取代人工汇总报表。' },
+    ]
+  },
+  {
+    id:'sec8', num:'八', title:'供应链与物料基础知识',
+    subtitle:'PjE+PE都需要，容易被忽视',
+    roles:['pe','pje'],
+    color:'#e879f9',
+    desc:'BOM结构管理（EBOM→MBOM）、物料齐套检查、来料检验协同、成本意识（材料利用率/辅料成本/良率损耗）。',
+    topics:[
+      { title:'BOM结构管理', desc:'工程BOM（EBOM）与制造BOM（MBOM）的转换与差异管理。' },
+      { title:'物料齐套（Material Readiness）', desc:'齐套率检查、缺料预警机制，决定试产/量产能否按时开线。' },
+      { title:'来料检验协同', desc:'与SQE/IQC协作制定关键物料检验标准，新料/替代料验证流程。' },
+      { title:'成本意识', desc:'材料利用率、辅料/耗材成本、良率损耗折算成本、Cost Down量化方法。' },
+    ]
+  },
+  {
+    id:'sec9', num:'九', title:'现场改善与Cost Down',
+    subtitle:'三角色融合最深、KPI最重的一块',
+    roles:['pe','ie','pje'],
+    color:'#f87171',
+    desc:'良率提升闭环（PFMEA→DOE→CP）、OEE提升项目、人力优化、能耗与环保成本、改善项目的项目化管理。',
+    topics:[
+      { title:'良率提升项目', desc:'从PFMEA迭代到DOE验证到CP固化的完整闭环。' },
+      { title:'OEE提升项目', desc:'六大损失拆解后的针对性改善（换型时间压缩、故障率下降、启动废品减少）。' },
+      { title:'人力优化', desc:'通过线平衡+自动化替代降低直接人工，控制在制品（WIP）库存。' },
+      { title:'能耗与环保成本', desc:'设备待机能耗管理、绿色制造指标（外资/上市公司客户关注）。' },
+      { title:'改善项目化', desc:'每个Cost Down项目本身用PjE方法论跟踪（目标/时间表/责任人/验收标准）。' },
+    ]
+  },
+  {
+    id:'sec10', num:'十', title:'软技能与管理能力',
+    subtitle:'越往项目工程师方向走，权重越高',
+    roles:['pje'],
+    color:'#facc15',
+    desc:'沟通与影响力（向上/平级/向下）、谈判能力（供应商/客户）、英语能力（外资/海外客户）、压力与优先级管理、团队管理。',
+    topics:[
+      { title:'沟通与影响力', desc:'向上汇报（管理层要结果和风险）、平级协调（各部门要立场理解和让步空间）、向下指导（产线/技术员要清晰指令）。' },
+      { title:'谈判能力', desc:'与供应商谈交期/成本，与客户谈规格妥协/成本分摊。' },
+      { title:'英语能力', desc:'技术文档阅读与撰写（PFMEA/8D/项目周报英文版）、客户电话会议（Conference Call）。' },
+      { title:'压力与优先级管理', desc:'PE的救火、IE的优化、PjE的deadline三者抢时间时的判断力。' },
+      { title:'团队管理', desc:'任务分配、绩效评估、培训体系搭建（若带技术员/工艺员团队）。' },
+    ]
+  },
+  {
+    id:'sec11', num:'十一', title:'三合一岗位最容易踩的坑',
+    subtitle:'三方抢时间的核心矛盾',
+    roles:['pe','ie','pje'],
+    color:'#ef4444',
+    desc:'PE视角（产线停了/良率掉了/客诉来了——每天都紧急）、IE视角（Layout优化/工时复测/线平衡——不紧急但重要）、PjE视角（客户要进度/老板要节点/跨部门要协调——永远有会要开有周报要交）。',
+    topics:[
+      { title:'PE视角的救火', desc:'产线停了、良率掉了、客诉来了——每天都紧急。' },
+      { title:'IE视角的优化', desc:'Layout优化、工时复测、线平衡——不紧急但重要，永远被往后拖。' },
+      { title:'PjE视角的进度', desc:'客户要进度、老板要节点、跨部门要协调——永远有会要开、有周报要交。' },
+      { title:'核心矛盾', desc:'PE的救火挤占IE的优化时间，IE的优化又被PjE的会议和报表挤占，最后变成"什么都在做，但什么都做得不深"。' },
+    ]
+  }
+];
+
+const SELF_CHECK = [
+  { dim:'PE出身', gap:'MOD法/线平衡/VSM/OEE六大损失拆解答不上来' },
+  { dim:'IE出身', gap:'PFMEA结构、CP文件逻辑、SMT制程参数讲不清' },
+  { dim:'技术出身（PE/IE都强）', gap:'项目风险管理、Stage-Gate评审、客户沟通/谈判经验缺失' },
+  { dim:'项目出身（PjE强）', gap:'制程/设备的技术判断力不足，容易被现场"忽悠"，只能传话不能拍板' },
+];
+
+// ============================================================
+// RENDER TOPIC CARDS
+// ============================================================
+function renderTopicCards() {
+  const grid = document.getElementById('topicGrid');
+  grid.innerHTML = SECTIONS.map(s => {
+    const roleLabel = s.roles.map(r => {
+      const colors = { pe:'#22d3ee', ie:'#34d399', pje:'#a78bfa' };
+      const names = { pe:'PE', ie:'IE', pje:'PjE' };
+      return `<span class="role-badge ${r}">${names[r]}</span>`;
+    }).join('');
+    return `<div class="topic-card" onclick="openSection('${s.id}')" style="border-left:3px solid ${s.color}">
+      <div class="tc-number">第${s.num}部分 · ${s.subtitle}</div>
+      <div class="tc-title" style="color:${s.color}">${s.title}</div>
+      <div class="tc-preview">${s.desc}</div>
+      <div class="role-badges" style="margin-top:10px">${roleLabel}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openSection(id) {
+  const s = SECTIONS.find(x => x.id === id);
+  if (!s) return;
+  const roleTags = s.roles.map(r => {
+    const map = { pe:['PE','var(--color-pe)','var(--color-pe-light)'], ie:['IE','var(--color-ie)','var(--color-ie-light)'], pje:['PjE','var(--color-pje)','var(--color-pje-light)'] };
+    const [label, color, bg] = map[r];
+    return `<span style="background:${bg};color:${color};border:1px solid ${color}33">${label}</span>`;
+  }).join('');
+  const topicsHTML = s.topics.map(t =>
+    `<li><strong>${t.title}</strong>：${t.desc}</li>`
+  ).join('');
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-role-tags">${roleTags}</div>
+    <h2 style="color:${s.color}">第${s.num}部分 · ${s.title}</h2>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${s.subtitle}</div>
+    <div class="modal-section">
+      <h3>概述</h3>
+      <p style="font-size:14px;line-height:1.7;color:var(--text-secondary)">${s.desc}</p>
+    </div>
+    <div class="modal-section">
+      <h3>知识要点（${s.topics.length}项）</h3>
+      <ul>${topicsHTML}</ul>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ============================================================
+// SELF CHECK MATRIX
+// ============================================================
+function renderSelfCheck() {
+  const tbody = document.getElementById('matrixBody');
+  tbody.innerHTML = SELF_CHECK.map(m => {
+    const colors = ['#22d3ee','#34d399','#fbbf24','#a78bfa'];
+    const color = colors[SELF_CHECK.indexOf(m) % colors.length];
+    return `<tr><td class="matrix-dim" style="color:${color}">${m.dim}</td><td>${m.gap}</td></tr>`;
+  }).join('');
+}
+
+// ============================================================
+// KNOWLEDGE TREE (D3 Force-Directed)
+// ============================================================
+let currentFilter = 'all';
+let treeNodes, treeLinks, treeSvg, treeSim, treeG, treeLink, treeNode, treeLabel;
+
+function buildKnowledgeTree() {
+  const container = document.getElementById('knowledge-tree');
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+
+  treeSvg = d3.select('#knowledge-tree').append('svg')
+    .attr('width', w).attr('height', h)
+    .call(d3.zoom().scaleExtent([0.2, 4]).on('zoom', ev => treeG.attr('transform', ev.transform)));
+
+  treeG = treeSvg.append('g');
+
+  // Build graph data
+  const flatNodes = [];
+  const flatLinks = [];
+
+  // Section nodes (large)
+  SECTIONS.forEach((s, i) => {
+    flatNodes.push({
+      id: s.id,
+      name: s.num + '. ' + s.title,
+      shortName: s.num + '. ' + s.title,
+      type: 'section',
+      roles: s.roles,
+      color: s.color,
+      size: 28,
+      desc: s.desc
+    });
+    // Topic nodes (small, connected to section)
+    s.topics.forEach((t, j) => {
+      const tid = s.id + '-t' + j;
+      flatNodes.push({
+        id: tid,
+        name: t.title,
+        shortName: t.title,
+        type: 'topic',
+        roles: s.roles,
+        color: s.color,
+        size: 12 + Math.min(t.title.length * 0.6, 8),
+        parent: s.id,
+        desc: t.desc
+      });
+      flatLinks.push({ source: s.id, target: tid, type: 'contains' });
+    });
+  });
+
+  // Cross-section relationships
+  // 工艺知识 ← 工艺开发（section1-2）
+  flatLinks.push({ source: 'sec2', target: 'sec1', type: 'depends' });
+  // 工装治具 ← 工艺开发（section4-2）
+  flatLinks.push({ source: 'sec4', target: 'sec2', type: 'depends' });
+  // IE分析 ← 数据分析工具（section3-7）
+  flatLinks.push({ source: 'sec3', target: 'sec7', type: 'uses' });
+  // 项目管理 ← 质量体系（section5-6）
+  flatLinks.push({ source: 'sec5', target: 'sec6', type: 'uses' });
+  // 现场改善 → IE+质量+项目（section9-3/6/5）
+  flatLinks.push({ source: 'sec9', target: 'sec3', type: 'depends' });
+  flatLinks.push({ source: 'sec9', target: 'sec6', type: 'depends' });
+  flatLinks.push({ source: 'sec9', target: 'sec5', type: 'depends' });
+  // 供应链 → 工艺+项目（section8-2/5）
+  flatLinks.push({ source: 'sec8', target: 'sec2', type: 'depends' });
+  flatLinks.push({ source: 'sec8', target: 'sec5', type: 'depends' });
+  // 软技能 → 项目（section10-5）
+  flatLinks.push({ source: 'sec10', target: 'sec5', type: 'related' });
+  // 三合一陷阱 → 所有
+  flatLinks.push({ source: 'sec11', target: 'sec1', type: 'warns' });
+  flatLinks.push({ source: 'sec11', target: 'sec3', type: 'warns' });
+  flatLinks.push({ source: 'sec11', target: 'sec5', type: 'warns' });
+
+  treeNodes = flatNodes;
+  treeLinks = flatLinks;
+
+  // Simulation
+  const sim = d3.forceSimulation(treeNodes)
+    .force('link', d3.forceLink(treeLinks).id(d => d.id).distance(d => d.type === 'contains' ? 60 : 130))
+    .force('charge', d3.forceManyBody().strength(d => d.type === 'section' ? -400 : -150))
+    .force('center', d3.forceCenter(w / 2, h / 2))
+    .force('collision', d3.forceCollide().radius(d => d.size + 6))
+    .alphaDecay(0.02);
+
+  treeSim = sim;
+
+  // Draw links
+  treeLink = treeG.append('g').selectAll('line').data(treeLinks).join('line')
+    .attr('stroke', d => {
+      const cat = SECTIONS.find(s => s.id === (typeof d.source === 'object' ? d.source.id : d.source));
+      return cat ? cat.color : '#64748b';
+    })
+    .attr('stroke-opacity', d => d.type === 'contains' ? 0.15 : 0.3)
+    .attr('stroke-width', d => d.type === 'contains' ? 0.8 : 1.5)
+    .attr('stroke-dasharray', d => d.type !== 'contains' ? '4,3' : null);
+
+  // Draw nodes
+  treeNode = treeG.append('g').selectAll('g').data(treeNodes).join('g')
+    .attr('class', 'tree-node')
+    .call(d3.drag()
+      .on('start', (ev, d) => { if (!ev.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', (ev, d) => { d.fx = ev.x; d.fy = ev.y; })
+      .on('end', (ev, d) => { if (!ev.active) sim.alphaTarget(0); if (!d.pinned) { d.fx = null; d.fy = null; } })
+    );
+
+  // Section circles (larger)
+  treeNode.filter(d => d.type === 'section').append('circle')
+    .attr('r', d => d.size)
+    .attr('fill', d => d.color + '22')
+    .attr('stroke', d => d.color)
+    .attr('stroke-width', 2.5)
+    .style('cursor', 'pointer');
+
+  // Topic circles (smaller)
+  treeNode.filter(d => d.type === 'topic').append('circle')
+    .attr('r', d => d.size)
+    .attr('fill', d => d.color + '18')
+    .attr('stroke', d => d.color)
+    .attr('stroke-width', 1.2)
+    .style('cursor', 'pointer');
+
+  // Section label
+  treeNode.filter(d => d.type === 'section').append('text')
+    .text(d => d.num)
+    .attr('fill', d => d.color)
+    .attr('font-size', d => Math.max(d.size * 0.6, 11))
+    .attr('font-weight', 700)
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'central')
+    .style('pointer-events', 'none')
+    .style('font-family', "'JetBrains Mono', monospace");
+
+  // Name labels
+  treeNode.append('text')
+    .text(d => d.shortName.length > 12 ? d.shortName.slice(0, 12) + '…' : d.shortName)
+    .attr('fill', '#e2e8f0')
+    .attr('font-size', d => d.type === 'section' ? 12 : 10)
+    .attr('font-weight', d => d.type === 'section' ? 600 : 400)
+    .attr('dy', d => d.size + 14)
+    .attr('text-anchor', 'middle')
+    .style('pointer-events', 'none');
+
+  // Hover
+  treeNode.on('mouseenter', function(ev, d) {
+    const connected = new Set([d.id]);
+    treeLinks.forEach(l => {
+      const sid = typeof l.source === 'object' ? l.source.id : l.source;
+      const tid = typeof l.target === 'object' ? l.target.id : l.target;
+      if (sid === d.id) connected.add(tid);
+      if (tid === d.id) connected.add(sid);
+    });
+    treeNode.each(function(n) {
+      d3.select(this).style('opacity', connected.has(n.id) ? 1 : 0.2);
+    });
+    treeLink.each(function(l) {
+      const sid = typeof l.source === 'object' ? l.source.id : l.source;
+      const tid = typeof l.target === 'object' ? l.target.id : l.target;
+      d3.select(this).style('opacity', (sid === d.id || tid === d.id) ? 0.6 : 0.05);
+    });
+  }).on('mouseleave', function() {
+    treeNode.style('opacity', null);
+    treeLink.style('opacity', null);
+  });
+
+  // Click
+  treeNode.on('click', function(ev, d) {
+    if (d.type === 'section') {
+      openSection(d.id);
+    } else {
+      // Topic: find parent section
+      const parentId = d.parent;
+      if (parentId) openSection(parentId);
+    }
+  });
+
+  sim.on('tick', () => {
+    treeLink
+      .attr('x1', l => l.source.x).attr('y1', l => l.source.y)
+      .attr('x2', l => l.target.x).attr('y2', l => l.target.y);
+    treeNode.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+
+  // Resize
+  window.addEventListener('resize', () => {
+    const nw = container.clientWidth;
+    const nh = container.clientHeight;
+    treeSvg.attr('width', nw).attr('height', nh);
+    sim.force('center', d3.forceCenter(nw / 2, nh / 2));
+    sim.alpha(0.3).restart();
+  });
+}
+
+// ============================================================
+// ROLE FILTER
+// ============================================================
+function filterRole(role) {
+  currentFilter = role;
+  const statusEl = document.getElementById('treeStatus');
+  const names = { pe:'🔬 PE工艺工程师', ie:'📊 IE工业工程师', pje:'🚀 PjE项目工程师', all:'全部角色' };
+  statusEl.textContent = '当前筛选：' + (names[role] || '全部角色');
+
+  // Update role badges in header
+  document.querySelectorAll('.role-badge').forEach(el => {
+    el.style.opacity = (role === 'all' || el.textContent.toLowerCase() === role) ? '1' : '0.35';
+  });
+
+  if (!treeNode) return;
+
+  // Filter nodes based on role
+  treeNode.each(function(d) {
+    const vis = role === 'all' || (d.roles && d.roles.includes(role));
+    d3.select(this).style('display', vis ? null : 'none');
+  });
+
+  // Filter links
+  treeLink.each(function(l) {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    const sn = treeNodes.find(n => n.id === sid);
+    const tn = treeNodes.find(n => n.id === tid);
+    const sVis = role === 'all' || (sn && sn.roles && sn.roles.includes(role));
+    const tVis = role === 'all' || (tn && tn.roles && tn.roles.includes(role));
+    d3.select(this).style('display', (sVis && tVis) ? null : 'none');
+  });
+
+  // Update stats
+  const visible = treeNodes.filter(n => role === 'all' || (n.roles && n.roles.includes(role)));
+  const vl = treeLinks.filter(l => {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    const sn = treeNodes.find(n => n.id === sid);
+    const tn = treeNodes.find(n => n.id === tid);
+    return (role === 'all' || (sn && sn.roles && sn.roles.includes(role) && tn && tn.roles && tn.roles.includes(role)));
+  });
+  statusEl.textContent = (names[role] || '全部角色') + `  ·  ${visible.length} 节点 / ${vl.length} 关系`;
+}
+
+// ============================================================
+// PITFALLS
+// ============================================================
+function renderPitfalls() {
+  const grid = document.getElementById('pitfallsGrid');
+  const pitfalls = [
+    { label:'PE视角', text:'产线停了、良率掉了、客诉来了——<strong>每天都紧急</strong>', color:'var(--color-pe)' },
+    { label:'IE视角', text:'Layout优化、工时复测、线平衡——<strong>不紧急但重要，永远被往后拖</strong>', color:'var(--color-ie)' },
+    { label:'PjE视角', text:'客户要进度、老板要节点、跨部门要协调——<strong>永远有会要开、有周报要交</strong>', color:'var(--color-pje)' },
+    { label:'核心矛盾', text:'PE的救火挤占IE的优化时间，IE的优化又被PjE的会议和报表挤占，最后变成<strong>"什么都在做，但什么都做得不深"</strong>', color:'#ef4444' },
+  ];
+  grid.innerHTML = pitfalls.map(p =>
+    `<div class="pitfall-card" style="border-left-color:${p.color}">
+      <div class="pf-label" style="color:${p.color}">${p.label}</div>
+      <div class="pf-text">${p.text}</div>
+    </div>`
+  ).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderTopicCards();
+renderSelfCheck();
+renderPitfalls();
+buildKnowledgeTree();
+// Initial filter after tree built
+setTimeout(() => filterRole('all'), 300);
+</script>
+</body>
+</html>

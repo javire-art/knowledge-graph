@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电子制造业知识图谱</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #111827;
+  --bg-card: rgba(17, 24, 39, 0.85);
+  --bg-glass: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.15);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #38bdf8;
+  --accent-glow: rgba(56, 189, 248, 0.15);
+
+  /* Category colors */
+  --color-materials: #f59e0b;
+  --color-manufacturing: #22d3ee;
+  --color-components: #a78bfa;
+  --color-assembly: #34d399;
+  --color-testing: #f472b6;
+  --color-application: #fb923c;
+  --color-standards: #e879f9;
+  --color-company: #f87171;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === Background Grid === */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* === Top Header Bar === */
+.top-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: linear-gradient(180deg, rgba(10,14,23,0.95) 60%, transparent);
+  padding: 16px 24px 20px;
+  display: flex; align-items: center; gap: 20px;
+  flex-wrap: wrap;
+}
+.top-bar h1 {
+  font-size: 20px; font-weight: 700;
+  background: linear-gradient(135deg, #38bdf8, #a78bfa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+}
+.top-bar h1::before { content: '⚡ '; }
+.top-bar .subtitle {
+  font-size: 12px; color: var(--text-muted);
+  margin-top: -2px;
+  -webkit-text-fill-color: var(--text-muted);
+}
+
+/* === Search === */
+.search-box {
+  position: relative; flex: 1; max-width: 360px; min-width: 160px;
+}
+.search-box input {
+  width: 100%; height: 36px;
+  padding: 0 12px 0 36px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--text-primary);
+  font-size: 13px; font-family: inherit;
+  outline: none; transition: all 0.2s;
+}
+.search-box input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.search-box input::placeholder { color: var(--text-muted); }
+.search-box .icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 14px;
+}
+.search-box .clear-btn {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 16px; display: none; padding: 4px;
+}
+.search-box .clear-btn.visible { display: block; }
+
+/* === Category Legend === */
+.legend-wrapper {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 8px; width: 100%;
+}
+.legend-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px 4px 8px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 11px; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.2s;
+  user-select: none;
+}
+.legend-item:hover {
+  border-color: var(--border-hover);
+  background: rgba(255,255,255,0.06);
+}
+.legend-item.active { background: rgba(255,255,255,0.08); border-color: var(--text-secondary); }
+.legend-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.legend-item .count {
+  color: var(--text-muted); font-size: 10px; margin-left: 2px;
+}
+
+/* === Graph Container === */
+#graph-container {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1;
+}
+#graph-container svg { width: 100%; height: 100%; }
+
+/* === Stats Counter === */
+.stats-bar {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 50;
+  display: flex; align-items: center; gap: 24px;
+  padding: 8px 24px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 12px; color: var(--text-muted);
+}
+.stats-bar span { white-space: nowrap; }
+.stats-bar .stat-num { color: var(--text-primary); font-weight: 600; }
+.stats-bar .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+
+/* === Detail Panel === */
+.detail-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 200;
+  width: 380px; max-width: 90vw;
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  border-left: 1px solid var(--border);
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.detail-panel.open { transform: translateX(0); }
+.detail-panel .close-btn {
+  position: absolute; top: 16px; right: 16px; z-index: 5;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--bg-glass); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.detail-panel .close-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+.detail-panel .panel-header {
+  padding: 32px 28px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.detail-panel .panel-category {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.5px;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.detail-panel .panel-name {
+  font-size: 24px; font-weight: 700;
+  line-height: 1.3;
+}
+.detail-panel .panel-name-en {
+  font-size: 13px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 4px;
+}
+.detail-panel .panel-body {
+  padding: 20px 28px;
+  overflow-y: auto; flex: 1;
+}
+.detail-panel .panel-section {
+  margin-bottom: 20px;
+}
+.detail-panel .panel-section h3 {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.detail-panel .panel-section p {
+  font-size: 14px; line-height: 1.7;
+  color: var(--text-secondary);
+}
+.detail-panel .tag-list {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.detail-panel .tag {
+  padding: 4px 10px; border-radius: 100px;
+  font-size: 11px; background: var(--bg-glass);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.detail-panel .relation-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.detail-panel .relation-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  background: var(--bg-glass); border: 1px solid var(--border);
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s;
+}
+.detail-panel .relation-item:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border-hover);
+}
+.detail-panel .relation-item .rel-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* === SVG Graph Styles === */
+.node-group { cursor: pointer; }
+.node-circle {
+  stroke-width: 2px;
+  transition: r 0.2s, stroke-width 0.2s;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+.node-group:hover .node-circle {
+  stroke-width: 3px;
+}
+.node-label {
+  font-size: 11px;
+  font-family: 'Noto Sans SC', sans-serif;
+  pointer-events: none;
+  dominant-baseline: central; text-anchor: middle;
+  transition: font-size 0.2s;
+}
+.node-label-bg {
+  fill: rgba(10,14,23,0.6);
+  rx: 4;
+}
+.node-highlight .node-circle { stroke-width: 4px; }
+.node-highlight .node-label { font-size: 14px; font-weight: 600; }
+.node-dim { opacity: 0.2; }
+.node-dim .node-label { opacity: 0; }
+
+.link {
+  stroke-opacity: 0.25;
+  stroke-width: 1.2px;
+  transition: stroke-opacity 0.3s, stroke-width 0.3s;
+}
+.link-dim { stroke-opacity: 0.05 !important; }
+.link-highlight { stroke-opacity: 0.6 !important; stroke-width: 2px !important; }
+
+/* === Tooltip === */
+.tooltip {
+  position: fixed; z-index: 300;
+  padding: 8px 14px;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px; font-family: 'Noto Sans SC', sans-serif;
+  color: var(--text-primary);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.tooltip.visible { opacity: 1; }
+.tooltip .tt-title { font-weight: 600; font-size: 13px; }
+.tooltip .tt-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .top-bar { padding: 12px 16px 16px; }
+  .top-bar h1 { font-size: 16px; }
+  .search-box { max-width: none; }
+  .detail-panel { width: 100vw; max-width: 100vw; }
+  .stats-bar { gap: 12px; padding: 6px 16px; font-size: 11px; flex-wrap: wrap; justify-content: center; }
+  .legend-wrapper { gap: 4px; }
+  .legend-item { font-size: 10px; padding: 3px 8px 3px 6px; }
+}
+
+/* === Smooth scroll === */
+.panel-body::-webkit-scrollbar { width: 4px; }
+.panel-body::-webkit-scrollbar-track { background: transparent; }
+.panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* === Node context button in panel === */
+.panel-relations .go-to-node { margin-left: auto; font-size: 16px; opacity: 0.5; }
+.relation-item:hover .go-to-node { opacity: 1; }
+
+/* === Responsive tweaks for graph labels === */
+@media (max-width: 600px) {
+  .node-label { font-size: 9px !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip">
+  <div class="tt-title"></div>
+  <div class="tt-sub"></div>
+</div>
+
+<!-- Top Bar -->
+<header class="top-bar">
+  <div>
+    <h1>电子制造业知识图谱</h1>
+    <div class="subtitle">Electronic Manufacturing Knowledge Graph</div>
+  </div>
+  <div class="search-box">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="搜索节点..." autocomplete="off">
+    <button class="clear-btn" id="clearBtn">✕</button>
+  </div>
+  <div class="legend-wrapper" id="legendWrapper"></div>
+</header>
+
+<!-- Graph -->
+<div id="graph-container"></div>
+
+<!-- Detail Panel -->
+<aside class="detail-panel" id="detailPanel">
+  <button class="close-btn" id="closePanel">✕</button>
+  <div class="panel-header">
+    <div class="panel-category" id="panelCategory"></div>
+    <div class="panel-name" id="panelName"></div>
+    <div class="panel-name-en" id="panelNameEn"></div>
+  </div>
+  <div class="panel-body">
+    <div class="panel-section">
+      <h3>描述</h3>
+      <p id="panelDesc"></p>
+    </div>
+    <div class="panel-section">
+      <h3>关联节点</h3>
+      <div class="relation-list" id="panelRelations"></div>
+    </div>
+    <div class="panel-section">
+      <h3>标签</h3>
+      <div class="tag-list" id="panelTags"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- Stats -->
+<div class="stats-bar" id="statsBar">
+  <span>节点 <span class="stat-num" id="statNodes">0</span></span>
+  <span class="dot"></span>
+  <span>关系 <span class="stat-num" id="statLinks">0</span></span>
+  <span class="dot"></span>
+  <span id="statCategory">全部</span>
+</div>
+
+<script>
+// ============================================================
+// DATA — 电子制造业知识图谱
+// ============================================================
+const CATEGORIES = {
+  materials:   { label: '原材料',   color: '#f59e0b',  light: 'rgba(245,158,11,0.15)' },
+  manufacturing: { label: '半导体制造', color: '#22d3ee', light: 'rgba(34,211,238,0.15)' },
+  components: { label: '电子元器件', color: '#a78bfa', light: 'rgba(167,139,250,0.15)' },
+  assembly:   { label: '组装工艺', color: '#34d399', light: 'rgba(52,211,153,0.15)' },
+  testing:    { label: '测试与质量', color: '#f472b6', light: 'rgba(244,114,182,0.15)' },
+  application:{ label: '应用领域', color: '#fb923c', light: 'rgba(251,146,60,0.15)' },
+  standards:  { label: '标准法规', color: '#a855f7', light: 'rgba(168,85,247,0.15)' },
+  company:    { label: '头部企业', color: '#f87171', light: 'rgba(248,113,113,0.15)' },
+};
+
+const NODES = [
+  // === 原材料 ===
+  { id:'silicon-wafer', name:'硅晶圆', nameEn:'Silicon Wafer', cat:'materials',
+    desc:'半导体芯片的基底材料，由高纯度多晶硅通过直拉法或区熔法生长成单晶硅棒，再经切片、研磨、抛光等工艺制成。硅晶圆直径越大（300mm主流），单片芯片成本越低。尺寸演进：4→6→8→12英寸。', tags:['半导体','衬底','硅材料'] },
+  { id:'photoresist', name:'光刻胶', nameEn:'Photoresist', cat:'materials',
+    desc:'光刻工艺中的感光材料，通过紫外线或极紫外光照射后发生化学变化，将掩模版图案转移到晶圆表面。分为正胶（曝光区域溶解）和负胶（未曝光区域溶解），EUV光刻胶是当前研发热点。', tags:['化学品','光刻','图案化'] },
+  { id:'copper-foil', name:'铜箔', nameEn:'Copper Foil', cat:'materials',
+    desc:'PCB和FPC的关键导电材料，由电解法或压延法制成。厚度规格从12μm到105μm不等，超薄铜箔（≤12μm）用于HDI和高频高速板。锂电池负极集流体也大量使用铜箔。', tags:['PCB','导电','电解'] },
+  { id:'substrate', name:'封装基板', nameEn:'IC Substrate', cat:'materials',
+    desc:'芯片封装的载体，提供电气连接和机械支撑。按材料分为有机基板（BT树脂、ABF）和陶瓷基板。FC-BGA基板是CPU/GPU主流封装方案，层数可达20层以上，线宽/线距走向微米级。', tags:['封装','载板','ABF'] },
+  { id:'solder', name:'焊料', nameEn:'Solder', cat:'materials',
+    desc:'电子组装中用于连接元器件与PCB的金属合金。主流无铅焊料SAC305（Sn-3.0Ag-0.5Cu），另有高温焊料（Sn-Sb）和低温焊料（Sn-Bi）。焊膏由焊料粉末和助焊剂混合而成。', tags:['焊接','无铅','SAC305'] },
+  { id:'rare-earth', name:'稀土金属', nameEn:'Rare Earth Metals', cat:'materials',
+    desc:'电子工业不可或缺的战略材料。钕用于永磁电机（扬声器、硬盘、EV电机），镧用于光学玻璃，钇用于LED荧光粉，镝用于高性能磁材。中国占全球稀土产量60%以上。', tags:['战略材料','永磁','荧光粉'] },
+
+  // === 半导体制造 ===
+  { id:'wafer-fab', name:'晶圆制造', nameEn:'Wafer Fabrication', cat:'manufacturing',
+    desc:'在硅晶圆表面通过光刻、沉积、刻蚀、掺杂等上百道工序构建微电子电路。Fab厂投资巨大（一座3nm工厂超200亿美元），制造过程在Class 1/10洁净室中进行。台积电、三星、英特尔为三大龙头。', tags:['Fab','晶圆厂','洁净室'] },
+  { id:'photolithography', name:'光刻', nameEn:'Photolithography', cat:'manufacturing',
+    desc:'利用光刻机通过掩模版将电路图案投影到涂有光刻胶的晶圆上。分辨率决定芯片制程节点。光刻机光源演进：汞灯→KrF(248nm)→ArF(193nm)→ArFi(浸没式)→EUV(13.5nm)→High-NA EUV。', tags:['光刻机','EUV','分辨率','ASML'] },
+  { id:'etching', name:'刻蚀', nameEn:'Etching', cat:'manufacturing',
+    desc:'去除晶圆表面不需要的材料以形成电路图案。分为湿法刻蚀（化学溶液）和干法刻蚀（等离子体）。干法可实现各向异性刻蚀（垂直侧壁），是先进制程的主流。刻蚀选择比和均匀性是关键指标。', tags:['等离子体','各向异性','干法'] },
+  { id:'deposition', name:'薄膜沉积', nameEn:'Thin Film Deposition', cat:'manufacturing',
+    desc:'在晶圆表面生长或沉积各种薄膜材料。PVD（物理气相沉积）用于金属膜，CVD/PECVD（化学气相沉积）用于绝缘膜和半导体膜，ALD（原子层沉积）用于高k栅介质等超薄膜。', tags:['CVD','PVD','ALD','薄膜'] },
+  { id:'doping', name:'掺杂', nameEn:'Doping', cat:'manufacturing',
+    desc:'向硅晶圆中引入杂质元素以改变导电类型和电阻率。N型掺杂（磷、砷）增加电子浓度，P型掺杂（硼）增加空穴浓度。工艺方法包括热扩散和离子注入，离子注入精度更高。', tags:['离子注入','扩散','PN结'] },
+  { id:'cmp', name:'化学机械抛光', nameEn:'CMP', cat:'manufacturing',
+    desc:'通过化学腐蚀和机械研磨结合实现晶圆表面的全局平坦化。每层金属化和介电层沉积后都需要CMP，铜互连工艺中CMP起关键作用。CMP浆料（Slurry）和抛光垫是核心耗材。', tags:['平坦化','CMP','Slurry'] },
+  { id:'wafer-test', name:'晶圆测试', nameEn:'Wafer Probe Test', cat:'manufacturing',
+    desc:'在划片前对晶圆上每个裸片（Die）进行电性能测试。使用探针卡接触Pad/凸点，测试良率决定哪些Die可进入封装工序。CP测试（Chip Probe）是良率管理的第一道关卡。', tags:['探针','良率','CP测试'] },
+
+  // === 电子元器件 ===
+  { id:'ic', name:'集成电路', nameEn:'Integrated Circuit (IC)', cat:'components',
+    desc:'将晶体管、电阻、电容等元件集成在半导体芯片上的微型电子电路。按功能分为数字IC（CPU、GPU、MCU、存储器）和模拟IC（运放、ADC/DAC、电源管理）。以线宽（nm）衡量工艺先进程度。', tags:['芯片','SoC','数字','模拟'] },
+  { id:'pcb', name:'PCB', nameEn:'Printed Circuit Board', cat:'components',
+    desc:'用于承载和连接电子元器件的基板。按层数分单/双/多层板，按基材分FR-4、高频板（Rogers）、金属基板、柔性板（FPC）。HDI板通过微盲孔和埋孔实现高密度互连。', tags:['线路板','FR-4','HDI','FPC'] },
+  { id:'transistor', name:'晶体管', nameEn:'Transistor', cat:'components',
+    desc:'现代电子工业的核心器件，用于放大和开关电信号。FET（场效应管）包括MOSFET、JFET，BJT（双极型）用于高频/大功率。FinFET是先进制程的主流结构，GAA（Gate-All-Around）是下一代技术。', tags:['MOSFET','FinFET','GAA','开关'] },
+  { id:'resistor', name:'电阻', nameEn:'Resistor', cat:'components',
+    desc:'在电路中限制电流、分压的被动元件。按材料分碳膜、金属膜、绕线等，按封装分贴片（0402/0603/0805）和插件。精密电阻（±0.1%）、功率电阻、热敏电阻（NTC/PTC）是常见品类。', tags:['被动元件','贴片','精密','NTC'] },
+  { id:'capacitor', name:'电容', nameEn:'Capacitor', cat:'components',
+    desc:'储存电荷的被动元件，用于滤波、耦合、去耦、定时等。MLCC（多层陶瓷电容）用量最大，铝电解用于大容量场景，钽电容稳定性好，薄膜电容用于高频/高压。', tags:['MLCC','被动元件','滤波','电解'] },
+  { id:'sensor', name:'传感器', nameEn:'Sensor', cat:'components',
+    desc:'将物理/化学/生物量转换为电信号。MEMS传感器（加速度计、陀螺仪、压力传感器）是消费电子标配。CMOS图像传感器占摄像头核心，应用于手机、安防、自动驾驶。', tags:['MEMS','CMOS','图像传感器','物联网'] },
+  { id:'connector', name:'连接器', nameEn:'Connector', cat:'components',
+    desc:'在电子系统之间传输信号和功率的互连器件。Type-C成为统一接口标准，BTB连接器用于PCB间连接，FPC连接器用于屏/板连接，RJ45用于网络，汽车连接器（高压/高速）是增长最快的细分市场。', tags:['Type-C','BTB','FPC','汽车'] },
+  { id:'inductor', name:'电感', nameEn:'Inductor', cat:'components',
+    desc:'利用电磁感应原理的被动元件，用于滤波、储能、阻抗匹配。叠层电感（MLCC工艺）用于高频，绕线电感用于大电流，一体成型电感（Molding）功率密度更高。', tags:['被动元件','滤波','功率','EMI'] },
+
+  // === 组装工艺 ===
+  { id:'solder-paste-print', name:'锡膏印刷', nameEn:'Solder Paste Printing', cat:'assembly',
+    desc:'SMT第一道工序，通过钢网将焊膏精准印刷到PCB焊盘上。钢网厚度、开口尺寸、刮刀角度/压力/速度、焊膏粘度是影响印刷质量的关键因素。SPI（焊膏检测仪）实时监控。', tags:['SMT','钢网','SPI','焊膏'] },
+  { id:'pick-place', name:'贴片', nameEn:'Pick and Place', cat:'assembly',
+    desc:'利用贴片机将元器件从编带中拾取并精确贴放到PCB焊盘上。速度（CPH）和精度（±30~50μm @3σ）是核心指标。飞达送料、吸嘴选型、视觉对位系统决定贴装品质。', tags:['SMT','贴片机','飞达','CPH'] },
+  { id:'reflow', name:'回流焊', nameEn:'Reflow Soldering', cat:'assembly',
+    desc:'将贴好元器件的PCB送入回流焊炉，通过温度曲线控制焊膏熔化再凝固形成永久焊点。典型温区：预热→恒温→回流→冷却。峰值温度和升温速率影响焊接质量和元件可靠性。', tags:['SMT','温度曲线','焊接','氮气'] },
+  { id:'wave-solder', name:'波峰焊', nameEn:'Wave Soldering', cat:'assembly',
+    desc:'通孔插件（THT）元件的主要焊接方式。PCB经过熔融焊料波峰时焊料填充通孔形成焊点。预热温度、波峰高度、传送速度、助焊剂喷涂量需精确控制。选择性波峰焊用于复杂板。', tags:['THT','插件','焊接','助焊剂'] },
+  { id:'aoi-inspection', name:'AOI检测', nameEn:'Automated Optical Inspection', cat:'assembly',
+    desc:'基于机器视觉的自动光学检测，在贴片后和回流焊后检查元件缺失、偏移、立碑、极性反、焊点质量等缺陷。使用2D/3D成像技术，结合AI算法降低误报率。', tags:['机器视觉','AOI','品质','AI'] },
+  { id:'xray-inspection', name:'X-Ray检测', nameEn:'X-Ray Inspection', cat:'assembly',
+    desc:'利用X射线穿透能力检测隐藏焊点（BGA、QFN底部焊点）、通孔填充率、空洞率。3D CT（计算机断层扫描）可重建焊点立体结构，用于高可靠性产品（汽车、医疗、航空）。', tags:['X-ray','BGA','空洞','CT'] },
+  { id:'underfill', name:'底部填充', nameEn:'Underfill', cat:'assembly',
+    desc:'在BGA/CSP芯片底部填充环氧树脂，分散热应力、提高焊点可靠性。毛细流动（Capillary Underfill）是最常用方式，MUF（Molded Underfill）用于PoP封装。', tags:['封装','BGA','可靠性','环氧树脂'] },
+
+  // === 测试与质量 ===
+  { id:'functional-test', name:'功能测试', nameEn:'Functional Test (FCT)', cat:'testing',
+    desc:'模拟产品实际工作环境，测试PCB/模组/整机各项功能是否正常。使用测试治具（Fixture）、探针床和上位机控制软件。测试项目包括电源、通信、I/O、传感器等全功能验证。', tags:['FCT','测试治具','功能验证'] },
+  { id:'burn-in', name:'老化测试', nameEn:'Burn-in Test', cat:'testing',
+    desc:'在高温（通常85~125°C）下使产品满载运行一段时间，加速暴露早期失效（Infant Mortality）。用于高可靠性产品（汽车、军工、通信基站），淘汰有潜在缺陷的器件。', tags:['可靠性','早期失效','高温','HALT'] },
+  { id:'emc-test', name:'EMC测试', nameEn:'Electromagnetic Compatibility', cat:'testing',
+    desc:'确保电子产品在电磁环境中正常工作且不对环境产生过量电磁干扰。测试分EMI（辐射/传导发射）和EMS（抗扰度）。使用暗室（Anechoic Chamber）、频谱分析仪、天线等设备。', tags:['EMC','EMI','暗室','认证'] },
+  { id:'reliability-test', name:'可靠性测试', nameEn:'Reliability Test', cat:'testing',
+    desc:'评估产品在规定条件下完成规定功能的能力。包括温度循环、湿度偏压（HAST）、振动、跌落、盐雾等。MTBF（平均无故障时间）和寿命加速模型用于预测产品使用寿命。', tags:['MTBF','HAST','环境试验','加速'] },
+  { id:'failure-analysis', name:'失效分析', nameEn:'Failure Analysis', cat:'testing',
+    desc:'对故障产品进行系统化根因分析，防止同类问题重复发生。常用手段：X-Ray→SAT（声学扫描）→Cross-section（切片）→SEM/EDX→FIB。DFA（Design for Analysis）是先进分析理念。', tags:['FA','SEM','切片','根因分析'] },
+
+  // === 应用领域 ===
+  { id:'consumer-electronics', name:'消费电子', nameEn:'Consumer Electronics', cat:'application',
+    desc:'知识图谱覆盖范围最广的应用领域，包括智能手机、平板、笔记本电脑、智能穿戴、游戏机、智能家居等。特点是更新换代快、成本敏感、微型化/集成化需求高。', tags:['手机','可穿戴','智能家居','快消'] },
+  { id:'automotive', name:'汽车电子', nameEn:'Automotive Electronics', cat:'application',
+    desc:'新能源汽车推动电子含量大幅增长。涉及ADAS（摄像头/雷达/激光雷达）、动力电池BMS、电驱控制、智能座舱、V2X通信。要求车规级（AEC-Q100/200）高可靠性，零缺陷质量管理。', tags:['EV','ADAS','BMS','AEC-Q100','车规'] },
+  { id:'medical-electronics', name:'医疗电子', nameEn:'Medical Electronics', cat:'application',
+    desc:'医疗设备中的电子系统包括医学影像（CT/MRI/超声）、病人监护（SpO2/ECG）、植入式器件（起搏器）、体外诊断（POCT）。需满足ISO 13485、IEC 60601等严苛标准。', tags:['医疗','ISO13485','监护','影像'] },
+  { id:'aerospace', name:'航空航天', nameEn:'Aerospace & Defense', cat:'application',
+    desc:'军用/航天级电子系统面临极端温度、振动、辐照环境。需满足MIL-STD、ESCC等标准，禁止使用非承制元器件。高可靠封装、冗余设计、抗辐照加固是核心技术。', tags:['军工','航天','抗辐照','MIL-STD'] },
+  { id:'telecom', name:'通信设备', nameEn:'Telecom Equipment', cat:'application',
+    desc:'从5G基站到光通信设备，通信电子产品对高速信号完整性、热管理、可靠性要求极高。包括RRU/AAU、交换机、路由器、光模块、small cell等。', tags:['5G','基站','光模块','信号完整性'] },
+  { id:'industrial-control', name:'工业控制', nameEn:'Industrial Control', cat:'application',
+    desc:'工业电子涵盖PLC、变频器、伺服驱动、DCS、工业物联网终端。宽温、抗干扰、长寿命是核心要求。工业4.0和智能制造推动工控电子向网络化和智能化方向发展。', tags:['PLC','变频器','工业4.0','物联网'] },
+
+  // === 标准法规 ===
+  { id:'ipc-standards', name:'IPC标准', nameEn:'IPC Standards', cat:'standards',
+    desc:'全球电子组装行业权威标准机构。IPC-A-610（电子组件的可接受性）是最广泛应用的标准，IPC-6012（刚性印制板鉴定）、IPC J-STD-001（焊接标准）也是核心标准。IPC-7351（焊盘设计）等。', tags:['IPC-A-610','J-STD-001','可接受性','组装'] },
+  { id:'iso9001', name:'ISO 9001', nameEn:'ISO 9001', cat:'standards',
+    desc:'质量管理体系国际标准。电子制造业普遍通过ISO 9001认证，涵盖设计、采购、生产、检验、交付全过程。IATF 16949是汽车电子版，AS9100是航空航天版。', tags:['QMS','质量管理','IATF16949','AS9100'] },
+  { id:'rohs', name:'RoHS', nameEn:'RoHS Directive', cat:'standards',
+    desc:'限制在电子电气产品中使用有害物质的指令（欧盟2002/95/EC）。限制六种物质：铅、汞、镉、六价铬、PBB、PBDE。RoHS 3（2015/863/EU）增加四种邻苯二甲酸酯。全球已有类似立法。', tags:['环保','有害物质','铅','合规'] },
+  { id:'reach', name:'REACH', nameEn:'REACH Regulation', cat:'standards',
+    desc:'欧盟关于化学品注册、评估、授权和限制的法规（EC 1907/2006）。电子制造商需确保产品中高关注物质（SVHC）含量低于阈值。与RoHS互补，RoHS限制使用，REACH管理化学物质全生命周期。', tags:['化学品','SVHC','环保','合规'] },
+  { id:'ul', name:'UL认证', nameEn:'UL Certification', cat:'standards',
+    desc:'Underwriters Laboratories安全认证，北美市场准入门槛。UL 60950（IT设备）、UL 62368（音视频/IT/通信设备）、UL 94（塑料阻燃）是电子行业常见认证。UL认证需工厂审查+定期跟踪。', tags:['安全认证','阻燃','UL94','北美'] },
+
+  // === 头部企业 ===
+  { id:'tsmc', name:'台积电 (TSMC)', nameEn:'TSMC', cat:'company',
+    desc:'全球最大的半导体代工厂，2024年先进制程（7nm以下）全球份额超90%。3nm（N3）已量产，2nm（N2）计划2025年量产。主要客户：苹果、英伟达、AMD、高通。总部台湾新竹。', tags:['代工','3nm','CoWoS','先进制程'] },
+  { id:'samsung', name:'三星电子', nameEn:'Samsung Electronics', cat:'company',
+    desc:'全球第二大半导体公司，IDM模式（设计+制造+封测一体化）。存储芯片（DRAM/NAND Flash）全球第一，晶圆代工全球第二。3nm GAA（Gate-All-Around）技术先于台积电量产。', tags:['IDM','存储芯片','DRAM','GAA'] },
+  { id:'intel', name:'英特尔 (Intel)', nameEn:'Intel', cat:'company',
+    desc:'全球最大的CPU制造商，x86架构主导者。提出IDM 2.0战略开放代工服务（Intel Foundry）。18A（等效1.8nm）采用RibbonFET+GAA+PowerVia背面供电，计划2025年量产。', tags:['CPU','x86','IDM 2.0','RibbonFET'] },
+  { id:'foxconn', name:'富士康', nameEn:'Foxconn (Hon Hai)', cat:'company',
+    desc:'全球最大电子制造服务（EMS）厂商，2024年营收约1.4万亿人民币。为Apple、NVIDIA、Sony等代工iPhone、服务器、游戏机。SMT产线超过10万条，全球工厂分布超过20国。', tags:['EMS','代工','iPhone','SMT'] },
+  { id:'asml', name:'ASML', nameEn:'ASML', cat:'company',
+    desc:'全球唯一EUV光刻机制造商，垄断高端光刻机市场。TWINSCAN NXE:3600D（EUV）每小时可曝光160片晶圆。High-NA EUV（EXE:5200）单台售价约4亿美元。客户：台积电、三星、英特尔。', tags:['光刻机','EUV','High-NA','荷兰'] },
+  { id:'ti', name:'德州仪器 (TI)', nameEn:'Texas Instruments', cat:'company',
+    desc:'全球最大的模拟半导体公司。产品线涵盖电源管理、信号链、嵌入式处理器（DSP/MCU）。拥有自主12英寸晶圆厂（RFAB、LFAB等），模拟芯片在汽车和工业市场占有率领先。', tags:['模拟芯片','电源','DSP','MCU'] },
+];
+
+// === 关系定义 ===
+const RELATION_TYPES = {
+  produces:      { label: '生产', dir: '正向' },
+  uses:          { label: '使用', dir: '正向' },
+  tests:         { label: '检测', dir: '正向' },
+  enables:       { label: '支撑', dir: '正向' },
+  applies_to:    { label: '应用于', dir: '正向' },
+  downstream_of: { label: '下游', dir: '反向' },
+  part_of:       { label: '属于', dir: '正向' },
+  competes_with: { label: '竞争', dir: '双向' },
+};
+
+const EDGES = [
+  // 原材料 → 半导体制造
+  { s:'silicon-wafer',  t:'wafer-fab',     type:'produces' },
+  { s:'photoresist',    t:'photolithography', type:'uses' },
+  { s:'silicon-wafer',  t:'photolithography', type:'uses' },
+
+  // 半导体制造内部
+  { s:'wafer-fab',      t:'photolithography', type:'part_of' },
+  { s:'wafer-fab',      t:'etching',          type:'part_of' },
+  { s:'wafer-fab',      t:'deposition',       type:'part_of' },
+  { s:'wafer-fab',      t:'doping',           type:'part_of' },
+  { s:'wafer-fab',      t:'cmp',              type:'part_of' },
+  { s:'wafer-fab',      t:'wafer-test',       type:'part_of' },
+  { s:'photolithography',t:'etching',         type:'enables' },
+  { s:'deposition',     t:'cmp',              type:'enables' },
+
+  // 半导体制造 → 元器件
+  { s:'wafer-fab',      t:'ic',              type:'produces' },
+  { s:'wafer-fab',      t:'transistor',       type:'produces' },
+  { s:'wafer-fab',      t:'sensor',           type:'produces' },
+  { s:'wafer-test',     t:'ic',              type:'tests' },
+  { s:'substrate',      t:'ic',              type:'uses' },
+
+  // 元器件内部
+  { s:'ic',             t:'transistor',       type:'part_of' },
+  { s:'pcb',            t:'resistor',         type:'uses' },
+  { s:'pcb',            t:'capacitor',        type:'uses' },
+  { s:'pcb',            t:'ic',              type:'uses' },
+  { s:'pcb',            t:'connector',        type:'uses' },
+  { s:'pcb',            t:'inductor',         type:'uses' },
+
+  // 原材料 → 元器件
+  { s:'copper-foil',    t:'pcb',             type:'uses' },
+  { s:'copper-foil',    t:'inductor',         type:'uses' },
+  { s:'solder',         t:'pcb',             type:'uses' },
+  { s:'solder',         t:'connector',        type:'uses' },
+  { s:'rare-earth',     t:'sensor',           type:'uses' },
+  { s:'rare-earth',     t:'consumer-electronics', type:'uses' },
+
+  // 组装工艺
+  { s:'solder-paste-print', t:'pick-place',       type:'enables' },
+  { s:'pick-place',    t:'reflow',            type:'enables' },
+  // SPI is a sub-process of solder paste printing, mentioned in its description
+  { s:'solder-paste-print', t:'reflow',          type:'enables' },
+  { s:'reflow',         t:'aoi-inspection',   type:'enables' },
+  { s:'wave-solder',    t:'aoi-inspection',   type:'enables' },
+  { s:'aoi-inspection', t:'xray-inspection',  type:'enables' },
+  { s:'reflow',         t:'underfill',        type:'enables' },
+  { s:'pcb',            t:'solder-paste-print', type:'uses' },
+  { s:'ic',             t:'pick-place',       type:'uses' },
+  { s:'solder',         t:'solder-paste-print', type:'uses' },
+  { s:'solder',         t:'wave-solder',      type:'uses' },
+  { s:'ic',             t:'underfill',        type:'uses' },
+
+  // 组装 → 测试
+  { s:'aoi-inspection', t:'functional-test',  type:'tests' },
+  { s:'xray-inspection',t:'functional-test',  type:'tests' },
+  { s:'functional-test',t:'burn-in',          type:'enables' },
+  { s:'functional-test',t:'emc-test',         type:'enables' },
+  { s:'burn-in',        t:'reliability-test',  type:'part_of' },
+  { s:'functional-test',t:'failure-analysis', type:'enables' },
+  { s:'reliability-test',t:'failure-analysis',type:'enables' },
+
+  // 应用领域连接
+  { s:'ic',             t:'consumer-electronics', type:'applies_to' },
+  { s:'pcb',            t:'consumer-electronics', type:'applies_to' },
+  { s:'sensor',         t:'consumer-electronics', type:'applies_to' },
+  { s:'ic',             t:'automotive',        type:'applies_to' },
+  { s:'pcb',            t:'automotive',        type:'applies_to' },
+  { s:'sensor',         t:'automotive',        type:'applies_to' },
+  { s:'burn-in',        t:'automotive',        type:'applies_to' },
+  { s:'ic',             t:'medical-electronics',type:'applies_to' },
+  { s:'pcb',            t:'medical-electronics',type:'applies_to' },
+  { s:'failure-analysis',t:'medical-electronics',type:'applies_to' },
+  { s:'ic',             t:'aerospace',        type:'applies_to' },
+  { s:'pcb',            t:'aerospace',        type:'applies_to' },
+  { s:'emc-test',       t:'aerospace',        type:'applies_to' },
+  { s:'ic',             t:'telecom',          type:'applies_to' },
+  { s:'pcb',            t:'telecom',          type:'applies_to' },
+  { s:'emc-test',       t:'telecom',          type:'applies_to' },
+  { s:'sensor',         t:'industrial-control',type:'applies_to' },
+  { s:'ic',             t:'industrial-control',type:'applies_to' },
+  { s:'pcb',            t:'industrial-control',type:'applies_to' },
+
+  // 标准关联
+  { s:'ipc-standards',  t:'pcb',              type:'applies_to' },
+  { s:'ipc-standards',  t:'solder',           type:'applies_to' },
+  { s:'ipc-standards',  t:'reflow',           type:'applies_to' },
+  { s:'ipc-standards',  t:'wave-solder',      type:'applies_to' },
+  { s:'ipc-standards',  t:'aoi-inspection',   type:'applies_to' },
+  { s:'iso9001',        t:'wafer-fab',        type:'applies_to' },
+  { s:'iso9001',        t:'functional-test',  type:'applies_to' },
+  { s:'iso9001',        t:'reliability-test', type:'applies_to' },
+  { s:'rohs',           t:'solder',           type:'applies_to' },
+  { s:'rohs',           t:'pcb',              type:'applies_to' },
+  { s:'reach',          t:'pcb',              type:'applies_to' },
+  { s:'ul',             t:'pcb',              type:'applies_to' },
+  { s:'ul',             t:'consumer-electronics', type:'applies_to' },
+
+  // 企业关联
+  { s:'tsmc',           t:'wafer-fab',        type:'produces' },
+  { s:'tsmc',           t:'ic',               type:'produces' },
+  { s:'samsung',        t:'wafer-fab',        type:'produces' },
+  { s:'samsung',        t:'ic',               type:'produces' },
+  { s:'intel',          t:'wafer-fab',        type:'produces' },
+  { s:'intel',          t:'ic',               type:'produces' },
+  { s:'foxconn',        t:'pcb',              type:'produces' },
+  { s:'foxconn',        t:'pick-place',       type:'uses' },
+  { s:'foxconn',        t:'reflow',           type:'uses' },
+  { s:'foxconn',        t:'consumer-electronics', type:'produces' },
+  { s:'asml',           t:'photolithography', type:'produces' },
+  { s:'ti',             t:'ic',               type:'produces' },
+  { s:'ti',             t:'automotive',       type:'applies_to' },
+  { s:'tsmc',           t:'consumer-electronics', type:'applies_to' },
+  { s:'samsung',        t:'consumer-electronics', type:'applies_to' },
+  { s:'samsung',        t:'automotive',       type:'applies_to' },
+  { s:'intel',          t:'automotive',       type:'applies_to' },
+  { s:'tsmc',           t:'automotive',       type:'applies_to' },
+  { s:'tsmc',           t:'aerospace',        type:'applies_to' },
+
+  // 企业间竞争
+  { s:'tsmc',           t:'samsung',          type:'competes_with' },
+  { s:'tsmc',           t:'intel',            type:'competes_with' },
+  { s:'samsung',        t:'intel',            type:'competes_with' },
+];
+
+// ============================================================
+// GRAPH SETUP
+// ============================================================
+let selectedNode = null;
+let activeCategory = null;
+let searchQuery = '';
+
+// Prepare data
+const nodeMap = {};
+NODES.forEach(n => nodeMap[n.id] = { ...n });
+const nodes = NODES.map(n => ({ ...n }));
+const links = EDGES.map(e => ({
+  source: e.s,
+  target: e.t,
+  type: e.type,
+  ...RELATION_TYPES[e.type]
+}));
+
+// Assign sizes based on degree
+const degreeCount = {};
+links.forEach(l => {
+  const s = typeof l.source === 'object' ? l.source.id : l.source;
+  const t = typeof l.target === 'object' ? l.target.id : l.target;
+  degreeCount[s] = (degreeCount[s] || 0) + 1;
+  degreeCount[t] = (degreeCount[t] || 0) + 1;
+});
+nodes.forEach(n => {
+  n.degree = degreeCount[n.id] || 0;
+  n.size = 15 + Math.min(n.degree * 3, 18);
+});
+
+// D3 setup
+const container = document.getElementById('graph-container');
+const width = container.clientWidth;
+const height = container.clientHeight;
+
+const svg = d3.select('#graph-container')
+  .append('svg')
+  .attr('width', width)
+  .attr('height', height)
+  .call(d3.zoom()
+    .scaleExtent([0.15, 4])
+    .on('zoom', (event) => g.attr('transform', event.transform)));
+
+const g = svg.append('g');
+
+// Arrow markers
+const defs = svg.append('defs');
+defs.selectAll('marker')
+  .data(Object.entries(RELATION_TYPES))
+  .enter()
+  .append('marker')
+  .attr('id', d => `arrow-${d[0]}`)
+  .attr('viewBox', '0 -5 10 10')
+  .attr('refX', 28)
+  .attr('refY', 0)
+  .attr('markerWidth', 6)
+  .attr('markerHeight', 6)
+  .attr('orient', 'auto')
+  .append('path')
+  .attr('d', 'M0,-5L10,0L0,5')
+  .attr('fill', d => CATEGORIES[nodeMap[d[0]]?.cat || 'manufacturing']?.color || '#666')
+  .attr('opacity', 0.5);
+
+// Force simulation
+const simulation = d3.forceSimulation(nodes)
+  .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+  .force('charge', d3.forceManyBody().strength(-350))
+  .force('center', d3.forceCenter(width / 2, height / 2))
+  .force('collision', d3.forceCollide().radius(d => d.size + 8))
+  .alphaDecay(0.02);
+
+// Draw links
+const link = g.append('g')
+  .selectAll('line')
+  .data(links)
+  .join('line')
+  .attr('class', 'link')
+  .attr('stroke', d => CATEGORIES[nodeMap[d.source.id || d.source]?.cat]?.color || '#666')
+  .attr('marker-end', d => `url(#arrow-${d.type})`)
+  .attr('stroke-dasharray', d => d.type === 'competes_with' ? '4,3' : null);
+
+// Draw link labels
+const linkLabel = g.append('g')
+  .selectAll('text')
+  .data(links)
+  .join('text')
+  .text(d => d.label || '')
+  .attr('fill', '#64748b')
+  .attr('font-size', 8)
+  .attr('text-anchor', 'middle')
+  .attr('dominant-baseline', 'central')
+  .attr('opacity', 0.4)
+  .style('pointer-events', 'none');
+
+// Draw nodes
+const node = g.append('g')
+  .selectAll('g')
+  .data(nodes)
+  .join('g')
+  .attr('class', 'node-group')
+  .call(d3.drag()
+    .on('start', (event, d) => {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    })
+    .on('drag', (event, d) => {
+      d.fx = event.x;
+      d.fy = event.y;
+    })
+    .on('end', (event, d) => {
+      if (!event.active) simulation.alphaTarget(0);
+      if (!d.pinned) { d.fx = null; d.fy = null; }
+    }));
+
+// Node circles
+node.append('circle')
+  .attr('class', 'node-circle')
+  .attr('r', d => d.size)
+  .attr('fill', d => CATEGORIES[d.cat]?.light || 'rgba(100,100,100,0.2)')
+  .attr('stroke', d => CATEGORIES[d.cat]?.color || '#666');
+
+// Node inner icon/letter
+node.append('text')
+  .text(d => d.name.charAt(0))
+  .attr('fill', d => CATEGORIES[d.cat]?.color || '#ccc')
+  .attr('font-size', d => Math.max(d.size * 0.55, 8))
+  .attr('font-weight', 700)
+  .attr('text-anchor', 'middle')
+  .attr('dominant-baseline', 'central')
+  .style('pointer-events', 'none')
+  .style('font-family', "'Noto Sans SC', sans-serif");
+
+// Node labels
+node.append('text')
+  .text(d => d.name)
+  .attr('class', 'node-label')
+  .attr('fill', '#f1f5f9')
+  .attr('dy', d => d.size + 14)
+  .attr('font-size', d => Math.min(d.size * 0.9, 13));
+
+// Hover
+node.on('mouseenter', function(event, d) {
+  const tt = document.getElementById('tooltip');
+  tt.querySelector('.tt-title').textContent = d.name;
+  tt.querySelector('.tt-sub').textContent = `${CATEGORIES[d.cat]?.label} · ${d.nameEn}`;
+  tt.style.left = (event.clientX + 14) + 'px';
+  tt.style.top = (event.clientY - 10) + 'px';
+  tt.classList.add('visible');
+
+  // Highlight
+  const connectedIds = new Set();
+  connectedIds.add(d.id);
+  links.forEach(l => {
+    const lid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    if (lid === d.id) connectedIds.add(tid);
+    if (tid === d.id) connectedIds.add(lid);
+  });
+  node.each(function(n) {
+    const el = d3.select(this);
+    if (connectedIds.has(n.id)) {
+      el.classed('node-highlight', n.id === d.id);
+      el.classed('node-dim', false);
+    } else {
+      el.classed('node-dim', true);
+      el.classed('node-highlight', false);
+    }
+  });
+  link.each(function(l) {
+    const lid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    const isConnected = (lid === d.id || tid === d.id);
+    d3.select(this).classed('link-highlight', isConnected).classed('link-dim', !isConnected);
+  });
+  linkLabel.attr('opacity', l => {
+    const lid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    return (lid === d.id || tid === d.id) ? 0.7 : 0.1;
+  });
+})
+.on('mouseleave', function() {
+  document.getElementById('tooltip').classList.remove('visible');
+  node.classed('node-highlight', false).classed('node-dim', false);
+  link.classed('link-highlight', false).classed('link-dim', false);
+  linkLabel.attr('opacity', 0.4);
+});
+
+// Click
+node.on('click', function(event, d) {
+  event.stopPropagation();
+  showDetail(d);
+});
+
+svg.on('click', () => closeDetail());
+
+// Simulation tick
+simulation.on('tick', () => {
+  link
+    .attr('x1', d => d.source.x)
+    .attr('y1', d => d.source.y)
+    .attr('x2', d => d.target.x)
+    .attr('y2', d => d.target.y);
+  linkLabel
+    .attr('x', d => (d.source.x + d.target.x) / 2)
+    .attr('y', d => (d.source.y + d.target.y) / 2);
+  node.attr('transform', d => `translate(${d.x},${d.y})`);
+});
+
+// Resize
+window.addEventListener('resize', () => {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  svg.attr('width', w).attr('height', h);
+  simulation.force('center', d3.forceCenter(w / 2, h / 2));
+  simulation.alpha(0.3).restart();
+});
+
+// ============================================================
+// LEGEND
+// ============================================================
+function buildLegend() {
+  const wrapper = document.getElementById('legendWrapper');
+  const counts = {};
+  nodes.forEach(n => { counts[n.cat] = (counts[n.cat] || 0) + 1; });
+  Object.entries(CATEGORIES).forEach(([key, cat]) => {
+    const item = document.createElement('span');
+    item.className = 'legend-item';
+    if (activeCategory === key) item.classList.add('active');
+    item.innerHTML = `
+      <span class="legend-dot" style="background:${cat.color}"></span>
+      ${cat.label}
+      <span class="count">${counts[key] || 0}</span>
+    `;
+    item.dataset.cat = key;
+    item.addEventListener('click', () => toggleCategory(key));
+    wrapper.appendChild(item);
+  });
+}
+
+function toggleCategory(cat) {
+  if (activeCategory === cat) {
+    activeCategory = null;
+  } else {
+    activeCategory = cat;
+  }
+  updateFilters();
+}
+
+function updateFilters() {
+  // Update legend UI
+  document.querySelectorAll('.legend-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.cat === activeCategory);
+  });
+
+  // Update nodes
+  node.each(function(n) {
+    const visible = !activeCategory || n.cat === activeCategory;
+    d3.select(this).style('display', visible ? null : 'none');
+  });
+
+  // Update links
+  link.each(function(l) {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    const sVisible = !activeCategory || (nodeMap[sid]?.cat === activeCategory);
+    const tVisible = !activeCategory || (nodeMap[tid]?.cat === activeCategory);
+    d3.select(this).style('display', (sVisible && tVisible) ? null : 'none');
+  });
+  linkLabel.style('display', link.style('display'));
+
+  // Apply search
+  applySearch();
+
+  // Update stats
+  const visibleNodes = nodes.filter(n => !activeCategory || n.cat === activeCategory);
+  document.getElementById('statNodes').textContent = visibleNodes.length;
+  document.getElementById('statCategory').textContent = activeCategory
+    ? CATEGORIES[activeCategory]?.label : '全部';
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearBtn');
+
+searchInput.addEventListener('input', () => {
+  searchQuery = searchInput.value.trim().toLowerCase();
+  clearBtn.classList.toggle('visible', searchQuery.length > 0);
+  applySearch();
+});
+
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  searchQuery = '';
+  clearBtn.classList.remove('visible');
+  applySearch();
+});
+
+function applySearch() {
+  if (!searchQuery) {
+    node.each(function() {
+      d3.select(this).style('opacity', null);
+    });
+    return;
+  }
+
+  const matched = new Set();
+  nodes.forEach(n => {
+    if (n.name.toLowerCase().includes(searchQuery) ||
+        n.nameEn.toLowerCase().includes(searchQuery) ||
+        (n.tags || []).some(t => t.toLowerCase().includes(searchQuery))) {
+      matched.add(n.id);
+    }
+  });
+
+  // Include neighbors of matched nodes
+  const expanded = new Set(matched);
+  links.forEach(l => {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    if (matched.has(sid)) expanded.add(tid);
+    if (matched.has(tid)) expanded.add(sid);
+  });
+
+  node.each(function(n) {
+    const el = d3.select(this);
+    if (expanded.has(n.id)) {
+      el.style('opacity', null);
+      el.classed('node-highlight', matched.has(n.id));
+    } else {
+      el.style('opacity', 0.12);
+      el.classed('node-highlight', false);
+    }
+  });
+
+  link.each(function(l) {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    const visible = expanded.has(sid) && expanded.has(tid);
+    d3.select(this).style('opacity', visible ? null : 0.05);
+  });
+  linkLabel.attr('opacity', function(l) {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    const visible = expanded.has(sid) && expanded.has(tid);
+    return visible ? 0.4 : 0.05;
+  });
+}
+
+// ============================================================
+// DETAIL PANEL
+// ============================================================
+function showDetail(d) {
+  selectedNode = d;
+  const panel = document.getElementById('detailPanel');
+  const cat = CATEGORIES[d.cat];
+
+  document.getElementById('panelCategory').textContent = cat.label;
+  document.getElementById('panelCategory').style.color = cat.color;
+  document.getElementById('panelName').textContent = d.name;
+  document.getElementById('panelNameEn').textContent = d.nameEn;
+  document.getElementById('panelDesc').textContent = d.desc;
+
+  // Tags
+  const tagsEl = document.getElementById('panelTags');
+  tagsEl.innerHTML = (d.tags || []).map(t =>
+    `<span class="tag" style="border-color:${cat.color}30;color:${cat.color}">${t}</span>`
+  ).join('');
+
+  // Relations
+  const relEl = document.getElementById('panelRelations');
+  const connected = [];
+  links.forEach(l => {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    if (sid === d.id) {
+      connected.push({ id: tid, rel: l.label || '关联', dir: '→' });
+    } else if (tid === d.id) {
+      const reverseLabel = l.type === 'competes_with' ? (l.label || '竞争') : '被' + (l.label || '关联');
+      connected.push({ id: sid, rel: reverseLabel, dir: '←' });
+    }
+  });
+
+  if (connected.length === 0) {
+    relEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px">暂无关联节点</div>';
+  } else {
+    relEl.innerHTML = connected.map(c => {
+      const n = nodeMap[c.id];
+      if (!n) return '';
+      const ccat = CATEGORIES[n.cat];
+      return `<div class="relation-item" data-id="${n.id}">
+        <span class="rel-dot" style="background:${ccat?.color || '#666'}"></span>
+        <span style="flex:1"><strong>${n.name}</strong></span>
+        <span style="color:var(--text-muted);font-size:11px">${c.rel}</span>
+        <span class="go-to-node">→</span>
+      </div>`;
+    }).join('');
+
+    relEl.querySelectorAll('.relation-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.id;
+        const n = nodes.find(x => x.id === id);
+        if (n) showDetail(n);
+      });
+    });
+  }
+
+  panel.classList.add('open');
+
+  // Highlight the node
+  svg.selectAll('.node-highlight').classed('node-highlight', false);
+  node.each(function(n) {
+    if (n.id === d.id) d3.select(this).classed('node-highlight', true);
+  });
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+  svg.selectAll('.node-highlight').classed('node-highlight', false);
+}
+
+document.getElementById('closePanel').addEventListener('click', closeDetail);
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeDetail(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    searchInput.focus();
+  }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+buildLegend();
+document.getElementById('statNodes').textContent = nodes.length;
+document.getElementById('statLinks').textContent = links.length;
+</script>
+</body>
+</html>
