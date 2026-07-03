@@ -329,6 +329,80 @@ nav .nav-links a:hover { color: var(--text-primary); }
 /* === Self Check Matrix === */
 #selfcheck-section { padding-bottom: 100px; }
 
+/* === Practical Skills Checklist === */
+.skills-section { padding-bottom: 80px; }
+.skills-filter {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 24px;
+}
+.skills-filter .sf-btn {
+  padding: 6px 18px; border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: all 0.2s;
+}
+.skills-filter .sf-btn:hover { border-color: var(--border-hover); }
+.skills-filter .sf-btn.active { border-color: var(--text-secondary); color: var(--text-primary); background: rgba(255,255,255,0.06); }
+.skills-filter .sf-btn.sf-pe { border-color: rgba(34,211,238,0.3); }
+.skills-filter .sf-btn.sf-pe.active { background: var(--color-pe-light); color: var(--color-pe); border-color: var(--color-pe); }
+.skills-filter .sf-btn.sf-ie { border-color: rgba(52,211,153,0.3); }
+.skills-filter .sf-btn.sf-ie.active { background: var(--color-ie-light); color: var(--color-ie); border-color: var(--color-ie); }
+.skills-filter .sf-btn.sf-pje { border-color: rgba(167,139,250,0.3); }
+.skills-filter .sf-btn.sf-pje.active { background: var(--color-pje-light); color: var(--color-pje); border-color: var(--color-pje); }
+.skills-stats {
+  font-size: 12px; color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.skills-list {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.skill-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+}
+.skill-item:hover { border-color: var(--border-hover); }
+.skill-item .si-role {
+  flex-shrink: 0; width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  border: 1.5px solid;
+}
+.skill-item .si-role.pe { border-color: var(--color-pe); color: var(--color-pe); background: var(--color-pe-light); }
+.skill-item .si-role.ie { border-color: var(--color-ie); color: var(--color-ie); background: var(--color-ie-light); }
+.skill-item .si-role.pje { border-color: var(--color-pje); color: var(--color-pje); background: var(--color-pje-light); }
+.skill-item .si-body { flex: 1; min-width: 0; }
+.skill-item .si-title {
+  font-size: 14px; font-weight: 600;
+  margin-bottom: 4px;
+}
+.skill-item .si-desc {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.6;
+}
+.skill-item .si-tags {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 8px;
+}
+.skill-item .si-tag {
+  font-size: 10px; padding: 2px 8px;
+  border-radius: 100px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.skill-item .si-category {
+  font-size: 10px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 2px;
+}
+
 /* === Scroll Arrow === */
 .section-divider {
   text-align: center; padding: 20px 0 40px;
@@ -370,6 +444,7 @@ footer {
     <a href="#details-section">详解</a>
     <a href="#pitfalls-section">避坑</a>
     <a href="#selfcheck-section">自检</a>
+    <a href="#skills-section">技能清单</a>
   </div>
 </nav>
 
@@ -479,6 +554,23 @@ footer {
       而不是「技术强但不会管项目」或「会开会但技术判断靠猜」。
     </p>
   </div>
+</section>
+
+<!-- === Practical Skills Checklist === -->
+<section class="section skills-section" id="skills-section" style="max-width:900px">
+  <div class="section-header">
+    <div class="sh-number">PRACTICAL SKILLS</div>
+    <h2>实战技能清单</h2>
+    <p>从实际工作场景中提炼的 PE / IE / PjE 核心技能，按角色分类速查</p>
+  </div>
+  <div class="skills-filter" id="skillsFilter">
+    <button class="sf-btn active" data-filter="all" onclick="filterSkills('all')">全部</button>
+    <button class="sf-btn sf-pe" data-filter="pe" onclick="filterSkills('pe')">🔬 PE 工艺</button>
+    <button class="sf-btn sf-ie" data-filter="ie" onclick="filterSkills('ie')">📊 IE 工业工程</button>
+    <button class="sf-btn sf-pje" data-filter="pje" onclick="filterSkills('pje')">🚀 PjE 项目管理</button>
+  </div>
+  <div class="skills-stats" id="skillsStats"></div>
+  <div class="skills-list" id="skillsList"></div>
 </section>
 
 <footer>
@@ -1015,11 +1107,89 @@ function renderPitfalls() {
 }
 
 // ============================================================
+// PRACTICAL SKILLS CHECKLIST
+// ============================================================
+const SKILLS = [
+  { role:'pe', cat:'P01', title:'SMT印刷参数调优', desc:'钢网开孔设计（面积比/宽厚比）、刮刀压力/速度/角度、锡膏粘度。SPI监控印刷偏移量/体积/面积，CPK≥1.33。', tags:['钢网','SPI','锡膏','CPK'] },
+  { role:'pe', cat:'P02', title:'回流焊炉温曲线Profiling', desc:'用KIC/Delta测温仪验证曲线：预热升温斜率<3°C/s、恒温150-190°C/60-120s、回流峰值235-250°C、冷却斜率<4°C/s。不同合金/PCB厚度需单独Profile。', tags:['Reflow','KIC','Profile','温度'] },
+  { role:'pe', cat:'P03', title:'贴片抛料率管控', desc:'目标<0.3%。原因：吸嘴堵塞/磨损、飞达送料异常、识别错误、真空不足。建立抛料日报+Top5 Pareto分析，每班清理吸嘴。', tags:['Pick&Place','抛料','Pareto','吸嘴'] },
+  { role:'pe', cat:'P04', title:'波峰焊/选择焊参数', desc:'预热80-110°C、焊接255-270°C、波峰高度/接触长度、传送速度。选择焊喷嘴直径和路径。助焊剂喷涂量CPK管控。', tags:['波峰焊','选择焊','助焊剂','预热'] },
+  { role:'pe', cat:'P05', title:'螺丝扭力管控', desc:'扭力规格（最大/最小/目标值）、枪校验周期、测试仪（Tory/Torx）。打滑/滑牙根因：螺纹公差、螺丝长度、垫片。', tags:['扭力','螺丝','扭矩','打滑'] },
+  { role:'pe', cat:'P06', title:'点胶/灌胶工艺窗口', desc:'点胶量/针头/间距/温度/压力/时间五参数DOE。胶水：UV胶/环氧树脂/硅胶。拉拔力测试和气泡率检查。', tags:['点胶','灌胶','UV胶','DOE'] },
+  { role:'pe', cat:'P07', title:'ICT/FCT测试调试', desc:'ICT覆盖率检查、Boundary Scan链完整性、FCT序列编写。良率损失分析（NPF/元件不良/焊接不良分布）。探针接触电阻定期检查。', tags:['ICT','FCT','Boundary Scan','覆盖'] },
+  { role:'pe', cat:'P08', title:'APQP文件体系搭建', desc:'主持APQP各阶段评审：PFC→PFMEA→CP串联更新。RPN评分一致性、CP控制方法/频次/反应计划合理性。PPAP 17项要素审核。', tags:['APQP','PFMEA','CP','PPAP'] },
+  { role:'pe', cat:'P09', title:'PFMEA动态迭代', desc:'季度评审：新失效模式、客诉反馈、DOE验证结果。S/O/D评分团队校准。建议动作完成率与有效性跟踪。', tags:['PFMEA','RPN','持续改善','闭环'] },
+  { role:'pe', cat:'P10', title:'DFM可制造性评审', desc:'NPI阶段介入：焊盘设计、元件间距/极性、测试点布局、治具避位。DFM问题分级（Critical/Major/Minor）推动研发改版。', tags:['DFM','NPI','焊盘','测试点'] },
+  { role:'pe', cat:'P11', title:'NPI试产组织', desc:'准备Checklist→首件确认→数据采集→Issue List管理。Exit Criteria评审：良率/覆盖率/CPK/Open Issue数量。', tags:['NPI','Trial Run','Issue List','Exit Criteria'] },
+  { role:'pe', cat:'P12', title:'FACA失效分析与纠正', desc:'临时围堵→根因（鱼骨图/5Why/DOE）→纠正措施→预防→效果确认→标准化。FACA报告编写向客户汇报。', tags:['FACA','8D','根因分析','CAPA'] },
+  { role:'pe', cat:'P13', title:'设备验证IQ/OQ/PQ', desc:'安装确认→运行确认（空跑/参数/报警）→性能确认（CPK/良率）。文档经QA审批归档，适用医疗/汽车行业审核。', tags:['IQ','OQ','PQ','验证'] },
+  { role:'pe', cat:'P14', title:'工程变更ECN/ECO', desc:'申请评审→影响评估（BOM/工艺/SOP/治具/测试）→小批量→PPAP再提交→发布。SAP/PDM中ECO版本管理与追溯。', tags:['ECN','ECO','BOM','PPAP'] },
+  { role:'pe', cat:'P15', title:'FPY良率分层分析', desc:'日/周良率采集，按工站/班次/物料批次/设备分层。异常触发FACA。FPY趋势图用于客户月报和质量会议。', tags:['FPY','良率','分层','报表'] },
+  { role:'pe', cat:'P16', title:'ESD体系审核', desc:'分区管控（EPA内外）、腕带/离子风机/桌垫定期检测。ANSI/ESD S20.20体系审核发现项纠正。HBM器件敏感度等级。', tags:['ESD','S20.20','HBM','EPA'] },
+  { role:'pe', cat:'P17', title:'MSL湿敏元件管控', desc:'MSL等级（1-6级）、真空包装完整性、烘烤条件（125°C/24h）、暴露时间追踪。MSL违规处理与客户投诉应对。', tags:['MSL','湿敏','烘烤','暴露时间'] },
+
+  { role:'ie', cat:'I01', title:'Takt/Cycle Time测算', desc:'Takt=可用工时/需求量。Cycle Time秒表法测20-30次取均值。ST=观测时间×评比率×(1+宽放率)。', tags:['Takt Time','Cycle Time','测时','ST'] },
+  { role:'ie', cat:'I02', title:'线平衡分析', desc:'平衡率=(各工位ST之和)/(瓶颈ST×工位数)×100%。目标≥85%。ECRS/作业重分配/工位合并拆分。', tags:['线平衡','ECRS','瓶颈','ST'] },
+  { role:'ie', cat:'I03', title:'标准工时库', desc:'MOD法/MTM预定时间标准。宽放率（疲劳5%/私事3%/管理2%）。半年复测，工艺变更后立即复测。', tags:['MOD','MTM','工时库','宽放'] },
+  { role:'ie', cat:'I04', title:'OEE六大损失拆解', desc:'OEE=可用率×性能率×良品率。六大损失：故障/换型/空转/速度/启动废品/生产废品。建立实时OEE看板。', tags:['OEE','六大损失','可用率','性能率'] },
+  { role:'ie', cat:'I05', title:'SMED快速换型', desc:'内部作业外部化、工装标准化、快换夹具、并行作业。目标单次换型<10min。换型记录与SOP视频标准化。', tags:['SMED','换型','快换','内外部'] },
+  { role:'ie', cat:'I06', title:'VSM价值流图', desc:'现状图：全流程信息流/物流/时间轴。未来图：识别改善点。改善路线图：责任人/目标/时间节点。', tags:['VSM','价值流','物流','改善路线'] },
+  { role:'ie', cat:'I07', title:'产线Layout规划', desc:'U型/直线/环形布局。物料动线避免交叉回流、WIP缓冲区、线边仓面积。新Layout模拟验证。', tags:['Layout','U型线','物流动线','WIP'] },
+  { role:'ie', cat:'I08', title:'人机配比与自动化ROI', desc:'人机联合分析。ROI=年节省/投资额，Payback<2年。Cobot/AGV/自动锁螺丝方案比选。', tags:['人机','ROI','Cobot','AGV'] },
+  { role:'ie', cat:'I09', title:'产能Ramp管理', desc:'Ramp曲线设定（上/下限/目标）。UPH逐周提升。产能瓶颈TOC识别。多产线订单分配优化。', tags:['Ramp','UPH','产能','TOC'] },
+  { role:'ie', cat:'I10', title:'Kaizen持续改善', desc:'八步法：定义→调查→根因→对策→实施→确认→标准化→横展。A3一页纸。发表会与奖励制度。', tags:['Kaizen','A3','改善提案','标准化'] },
+  { role:'ie', cat:'I11', title:'OLE劳动效率', desc:'OLE=(实际产出×ST)/总投入工时。评估自动化替代效果、人员配置优化。班组排名与竞赛。', tags:['OLE','劳动效率','人员配置','工时'] },
+  { role:'ie', cat:'I12', title:'DOE实验设计', desc:'全因子/部分因子/响应曲面。Minitab/JMP：主效应/交互效应图、ANOVA、优化器。样本量和随机化。', tags:['DOE','Minitab','ANOVA','因子'] },
+
+  { role:'pje', cat:'M01', title:'跨部门团队组建', desc:'干系人矩阵（六方）。RACI职责矩阵。Kick-off Meeting：目标/范围/里程碑/沟通计划。', tags:['RACI','Kick-off','干系人','矩阵'] },
+  { role:'pje', cat:'M02', title:'项目计划与关键路径', desc:'WBS→依赖关系→甘特图→关键路径。CCPM缓冲区管理（项目/接驳/资源缓冲）。Project软件。', tags:['WBS','甘特图','关键路径','CCPM'] },
+  { role:'pje', cat:'M03', title:'Stage-Gate评审', desc:'Gate1立项→2设计→3试产→4量产→5收尾。每个Gate Exit Criteria清单与表决机制。', tags:['Stage-Gate','APQP','Exit Criteria','放行'] },
+  { role:'pje', cat:'M04', title:'风险登记表管理', desc:'Risk Register：描述→概率×影响=RPN→应对策略（规避/转移/缓解/接受）。月度评审升级。', tags:['风险管理','Risk Register','RPN','升级'] },
+  { role:'pje', cat:'M05', title:'客户审核应对', desc:'VDA6.3/IATF16949/年度审核。准备Checklist、CAPA回复、审核报告存档。常见问题库。', tags:['审核','VDA6.3','IATF16949','CAPA'] },
+  { role:'pje', cat:'M06', title:'投资与预算管理', desc:'CAPEX/OPEX编制：设备/工程/验证/培训。实际vs预算偏差分析。ROI/Payback/NPV测算。', tags:['CAPEX','ROI','预算','NPV'] },
+  { role:'pje', cat:'M07', title:'PPAP文件包', desc:'19+1要素：设计记录/DFMEA/PFMEA/CP/MSA/Cpk等。提交等级(Level1-5)。客户签署放行跟踪。', tags:['PPAP','PSW','提交等级','签署'] },
+  { role:'pje', cat:'M08', title:'产能规划与投资', desc:'现状→预测→Gap分析→方案比选。FAT/SAT→IQ/OQ/PQ→量产爬坡投资决策全流程。', tags:['产能','FAT','SAT','投资'] },
+  { role:'pje', cat:'M09', title:'VOC客户需求转化', desc:'VOC→QFD技术规格→可行性评审→报价。样品送样管理。客户投诉8D回复时效管控。', tags:['VOC','QFD','样品','报价'] },
+  { role:'pje', cat:'M10', title:'Ramp Readiness检查', desc:'Checklist：物料/设备/培训/SOP/品质/产能/应急。各职能签字放行。日会与升级通道。', tags:['Ramp','Readiness','放行','产能验证'] },
+  { role:'pje', cat:'M11', title:'工厂信息流对接', desc:'MES(工单/追溯)→ERP(订单/财务)→PLM(文件/BOM/ECN)。SAP/PDM BOM维护。追溯链。', tags:['MES','ERP','SAP','追溯'] },
+  { role:'pje', cat:'M12', title:'POR基线管理', desc:'POR定义：Layout/SOP/参数/物料。Line Audit发现项分级(Major/Minor/Observation)。限时整改。', tags:['POR','Line Audit','基线','合规'] },
+];
+
+let currentSkillFilter = 'all';
+
+function renderSkills() {
+  const list = document.getElementById('skillsList');
+  const stats = document.getElementById('skillsStats');
+  const filtered = currentSkillFilter === 'all' ? SKILLS : SKILLS.filter(s => s.role === currentSkillFilter);
+  const labels = { all:'全部角色', pe:'PE工艺工程师', ie:'IE工业工程师', pje:'PjE项目工程师' };
+  stats.textContent = `共 ${filtered.length} 项技能 · ${labels[currentSkillFilter] || '全部角色'}`;
+  list.innerHTML = filtered.map(s => {
+    const rn = { pe:'PE', ie:'IE', pje:'PjE' };
+    return `<div class="skill-item">
+      <div class="si-role ${s.role}">${rn[s.role]}</div>
+      <div class="si-body">
+        <div class="si-category">${s.cat}</div>
+        <div class="si-title">${s.title}</div>
+        <div class="si-desc">${s.desc}</div>
+        <div class="si-tags">${s.tags.map(t => `<span class="si-tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterSkills(role) {
+  currentSkillFilter = role;
+  document.querySelectorAll('.sf-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === role));
+  renderSkills();
+}
+
+// ============================================================
 // INIT
 // ============================================================
 renderTopicCards();
 renderSelfCheck();
 renderPitfalls();
+renderSkills();
 buildKnowledgeTree();
 // Initial filter after tree built
 setTimeout(() => filterRole('all'), 300);
