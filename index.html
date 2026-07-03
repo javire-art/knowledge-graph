@@ -458,6 +458,8 @@ const NODES = [
     desc:'利用X射线穿透能力检测隐藏焊点（BGA、QFN底部焊点）、通孔填充率、空洞率。3D CT（计算机断层扫描）可重建焊点立体结构，用于高可靠性产品（汽车、医疗、航空）。', tags:['X-ray','BGA','空洞','CT'] },
   { id:'underfill', name:'底部填充', nameEn:'Underfill', cat:'assembly',
     desc:'在BGA/CSP芯片底部填充环氧树脂，分散热应力、提高焊点可靠性。毛细流动（Capillary Underfill）是最常用方式，MUF（Molded Underfill）用于PoP封装。', tags:['封装','BGA','可靠性','环氧树脂'] },
+  { id:'dfm', name:'可制造性设计', nameEn:'Design for Manufacturing (DFM)', cat:'assembly',
+    desc:'在产品设计阶段提前介入制造可行性评估。核心工作：审查PCB布局/焊盘设计是否符合SMT能力、结构件装配可行性与公差分析、测试点覆盖率。DFM问题汇总与评审会议推动设计优化，减少NPI阶段的设计失效和改版成本。', tags:['DFM','NPI','设计评审','公差'] },
 
   // === 测试与质量 ===
   { id:'functional-test', name:'功能测试', nameEn:'Functional Test (FCT)', cat:'testing',
@@ -470,6 +472,14 @@ const NODES = [
     desc:'评估产品在规定条件下完成规定功能的能力。包括温度循环、湿度偏压（HAST）、振动、跌落、盐雾等。MTBF（平均无故障时间）和寿命加速模型用于预测产品使用寿命。', tags:['MTBF','HAST','环境试验','加速'] },
   { id:'failure-analysis', name:'失效分析', nameEn:'Failure Analysis', cat:'testing',
     desc:'对故障产品进行系统化根因分析，防止同类问题重复发生。常用手段：X-Ray→SAT（声学扫描）→Cross-section（切片）→SEM/EDX→FIB。DFA（Design for Analysis）是先进分析理念。', tags:['FA','SEM','切片','根因分析'] },
+  { id:'faca', name:'FACA', nameEn:'Failure Analysis Corrective Action', cat:'testing',
+    desc:'从产线异常或客诉触发的技术根因分析流程：问题描述→临时对策→根因分析→纠正措施→预防措施→效果验证→标准化。与8D互补使用，FACA更侧重技术层面的工程分析和实验验证，适用于汽车电子等严苛行业。', tags:['纠正措施','根因分析','工程分析','CAPA'] },
+  { id:'fpy', name:'FPY良率报告', nameEn:'First Pass Yield Reporting', cat:'testing',
+    desc:'首次良率（FPY/FTQ）是产线品质的核心KPI。日报/周报的数据采集、计算规则定义（测试站点 pass 逻辑）、异常点追溯、分层分析（按工站/班次/物料/设备维度）。FPY趋势图是客户月报和内部改善会议的标准输入。', tags:['良率','KPI','报表','SPC'] },
+  { id:'por-compliance', name:'POR基线管理', nameEn:'Plan of Record Compliance', cat:'testing',
+    desc:'确保产线始终运行在已批准的工艺基线之上。核心管控点：Layout布局与程序一致、设备参数在规格范围内、SOP为最新版本、物料为指定料号、5S与纪律符合要求。产线日常巡查（Line Audit）和不符项（Non-compliance）的纠正闭环。', tags:['基线','合规','巡查','纪律'] },
+  { id:'line-audit', name:'产线审核', nameEn:'Production Line Audit', cat:'testing',
+    desc:'系统化产线巡查机制，验证产线是否按POR（Plan of Record）运行。检查维度：设备参数设定值、物料标识与追溯、ESD防护措施、SOP执行情况、人员操作规范、品质记录完整性。审核发现项分级（Major/Minor/Observation）与CAPA跟进。', tags:['巡查','合规','VDA6.3','审核'] },
 
   // === 应用领域 ===
   { id:'consumer-electronics', name:'消费电子', nameEn:'Consumer Electronics', cat:'application',
@@ -648,6 +658,26 @@ const EDGES = [
   { s:'tsmc',           t:'samsung',          type:'competes_with' },
   { s:'tsmc',           t:'intel',            type:'competes_with' },
   { s:'samsung',        t:'intel',            type:'competes_with' },
+
+  // === 经验提炼新增关系 ===
+  // FACA/失效分析链路
+  { s:'failure-analysis', t:'faca',           type:'enables' },
+  { s:'faca',           t:'fpy',              type:'enables' },
+  { s:'functional-test',  t:'fpy',            type:'enables' },
+  { s:'fpy',            t:'automotive',       type:'applies_to' },
+  { s:'faca',           t:'automotive',       type:'applies_to' },
+  { s:'faca',           t:'consumer-electronics', type:'applies_to' },
+
+  // POR/Line Audit
+  { s:'por-compliance', t:'line-audit',      type:'enables' },
+  { s:'iso9001',        t:'line-audit',      type:'applies_to' },
+  { s:'line-audit',     t:'automotive',      type:'applies_to' },
+  { s:'line-audit',     t:'medical-electronics', type:'applies_to' },
+
+  // DFM
+  { s:'pcb',            t:'dfm',             type:'enables' },
+  { s:'dfm',            t:'aoi-inspection',  type:'enables' },
+  { s:'dfm',            t:'functional-test', type:'enables' },
 ];
 
 // ============================================================
